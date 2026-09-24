@@ -290,6 +290,9 @@ svg.leaflet-zoom-animated{will-change:transform}
       width:auto; max-width:none;
       max-height:min(70vh, calc(100% - 24px));
     }
+    .mini-preview{
+      left:12px; right:12px; top:12px;
+    }
     .route-mode-btn, .filter-chip, .route-clear-btn{padding-top:9px; padding-bottom:9px;}
     .route-stop .drag-handle{padding:6px;}
     .fav-btn, .visited-btn{width:38px; height:38px;}
@@ -1204,6 +1207,93 @@ svg.leaflet-zoom-animated{will-change:transform}
   }
   .saved-route-item .srdel:hover{color:#c0392b;}
 
+  /* ---------- MÓVIL: mini-pestaña al seleccionar una obra en el mapa ----------
+     En vez de saltar directamente al panel de detalle (que tapa el mapa entero),
+     al tocar una chincheta se muestra esta pequeña tarjeta flotante con la foto
+     y un botón "Detalle de obra" que, si se quiere, lleva al listado/detalle
+     completo. Así el mapa nunca se pierde de vista solo por tocar un pin. */
+  .mini-preview{
+    display:none;
+    position:absolute;
+    z-index:640;
+    align-items:center;
+    gap:10px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:8px;
+    box-shadow:0 6px 18px rgba(21,24,28,0.16);
+    padding:8px;
+  }
+  .mini-preview.show{display:flex;}
+  .mini-preview-close{
+    position:absolute;
+    top:-8px; right:-8px;
+    width:22px; height:22px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--paper);
+    color:var(--ink-soft);
+    font-size:11px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .mini-preview-thumb{
+    width:52px; height:52px;
+    flex-shrink:0;
+    border-radius:6px;
+    overflow:hidden;
+    position:relative;
+    background:var(--paper-2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .mini-preview-thumb svg{width:24px; height:24px; position:relative; z-index:1;}
+  .mini-preview-thumb img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    opacity:0;
+    transition:opacity .3s ease;
+    z-index:2;
+  }
+  .mini-preview-thumb img.loaded{opacity:1;}
+  .mini-preview-info{min-width:0; flex:1;}
+  .mini-preview-name{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    line-height:1.25;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .mini-preview-sub{
+    font-size:10.5px;
+    color:var(--ink-soft);
+    margin-top:2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .mini-preview-btn{
+    flex-shrink:0;
+    background:var(--ink);
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    padding:8px 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.02em;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+
   .map-legend{
     position:absolute;
     left:16px; bottom:16px;
@@ -1596,6 +1686,18 @@ svg.leaflet-zoom-animated{will-change:transform}
         <button class="route-clear-btn" id="routeClearBtn" type="button">Vaciar ruta</button>
         <div class="route-saved-list" id="routeSavedList" style="display:none;"></div>
         </div>
+      </div>
+      <div class="mini-preview" id="miniPreview">
+        <button class="mini-preview-close" id="miniPreviewClose" type="button" title="Cerrar">✕</button>
+        <div class="mini-preview-thumb" id="miniPreviewThumb">
+          <svg id="miniPreviewIconSvg" viewBox="0 0 40 40"></svg>
+          <img id="miniPreviewPhoto" alt="">
+        </div>
+        <div class="mini-preview-info">
+          <div class="mini-preview-name" id="miniPreviewName"></div>
+          <div class="mini-preview-sub" id="miniPreviewSub"></div>
+        </div>
+        <button class="mini-preview-btn" id="miniPreviewDetailBtn" type="button">Detalle de obra</button>
       </div>
       <div class="map-legend">
         <div class="title">Relevancia de la obra</div>
@@ -3650,6 +3752,7 @@ function setRouteModeActive(active){
   routePanel.classList.toggle('show', active);
   mapArea.classList.toggle('route-panel-open', active);
   if(active) setRoutePanelMinimized(false);
+  if(active) hideMiniPreview();
   renderList();
 }
 routeModeBtn.addEventListener('click', ()=> setRouteModeActive(!routeModeActive));
@@ -4358,11 +4461,21 @@ function selectWork(id){
   map.once('moveend', ()=>{ if(markers[w.id]) markers[w.id].setIcon(makeIcon(w, map.getZoom(), true)); });
 
   if(window.innerWidth <= 760){
+    /* En vez de abrir directamente el panel de detalle (que tapa el mapa
+       entero), el mapa se queda a la vista y se muestra la mini-pestaña
+       con la foto y el botón "Detalle de obra"; el listado/detalle completo
+       se queda a un toque de ese botón (o de "Ver listado"). */
     sidebar.classList.add('hide-mobile');
+    showingMap = true;
+    mapToggleBtn.textContent = 'Ver listado';
+    showMiniPreview(w);
+  } else {
+    hideMiniPreview();
   }
 }
 
 document.getElementById('backBtn').addEventListener('click', ()=>{
+  hideMiniPreview();
   detailView.classList.remove('show');
   listView.style.display = 'block';
   if(activeId && markers[activeId]) markers[activeId].setIcon(makeIcon(ALL_WORKS.find(x=>x.id===activeId), map.getZoom(), false));
@@ -4430,11 +4543,64 @@ const sidebar = document.getElementById('sidebar');
 const mapToggleBtn = document.getElementById('mapToggleBtn');
 let showingMap = false;
 mapToggleBtn.addEventListener('click', ()=>{
+  hideMiniPreview();
   showingMap = !showingMap;
   sidebar.classList.toggle('hide-mobile', showingMap);
   mapToggleBtn.textContent = showingMap ? 'Ver listado' : 'Ver mapa';
   setTimeout(()=> map.invalidateSize(), 210);
 });
+
+/* ================= MÓVIL: mini-pestaña al seleccionar una obra en el mapa =================
+   Tarjeta pequeña y flotante (foto + nombre + botón) que aparece sobre el
+   mapa al tocar una chincheta, sin tapar el mapa entero ni obligar a saltar
+   al panel de detalle. El botón "Detalle de obra" es quien, si se quiere,
+   lleva al listado/detalle completo. */
+const miniPreview = document.getElementById('miniPreview');
+const miniPreviewThumb = document.getElementById('miniPreviewThumb');
+const miniPreviewIconSvg = document.getElementById('miniPreviewIconSvg');
+const miniPreviewPhoto = document.getElementById('miniPreviewPhoto');
+const miniPreviewName = document.getElementById('miniPreviewName');
+const miniPreviewSub = document.getElementById('miniPreviewSub');
+const miniPreviewDetailBtn = document.getElementById('miniPreviewDetailBtn');
+const miniPreviewClose = document.getElementById('miniPreviewClose');
+let miniPreviewToken = 0;
+
+function hideMiniPreview(){
+  miniPreview.classList.remove('show');
+}
+
+async function showMiniPreview(w){
+  if(routeModeActive){ hideMiniPreview(); return; } // en modo ruta ya está el "+" de cada chincheta para esto
+  const myToken = ++miniPreviewToken;
+
+  miniPreviewName.textContent = w.name;
+  miniPreviewSub.textContent = `${w.architect} · ${w.city}`;
+  miniPreviewIconSvg.innerHTML = `<use href="#ic-${w.icon}"></use>`;
+  miniPreviewThumb.style.color = `var(--pin-${w.relevance})`;
+  miniPreviewPhoto.classList.remove('loaded');
+  miniPreviewPhoto.src = '';
+  miniPreviewDetailBtn.onclick = ()=>{
+    hideMiniPreview();
+    showingMap = false;
+    sidebar.classList.remove('hide-mobile');
+    mapToggleBtn.textContent = 'Ver mapa';
+    setTimeout(()=> map.invalidateSize(), 210);
+  };
+  miniPreview.classList.add('show');
+
+  let result = photoCache[w.id];
+  if(result === undefined){
+    result = await fetchWorkPhoto(w);
+    photoCache[w.id] = result;
+  }
+  if(myToken !== miniPreviewToken) return; // ya se seleccionó otra obra mientras se cargaba la foto
+  if(!result) return; // sin foto: se queda el icono de respaldo
+  miniPreviewPhoto.onload = () => { if(myToken === miniPreviewToken) miniPreviewPhoto.classList.add('loaded'); };
+  miniPreviewPhoto.onerror = () => { miniPreviewPhoto.classList.remove('loaded'); };
+  miniPreviewPhoto.src = result.src;
+}
+
+miniPreviewClose.addEventListener('click', hideMiniPreview);
 
 /* En móvil, arrancar mostrando el MAPA (no el listado), y que el
    listado quede a un toque de distancia. Así "ARCH-MAP" muestra el
