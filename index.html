@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-title" content="ARCH-MAP">
 <meta name="theme-color" content="#f7f7f4">
 <title>ARCH-MAP — Atlas de arquitectura</title>
-<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="icon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA4UlEQVR4nNVXQQqDQAzshn6h0EMRvPn/1/RWKB4EH2FPgobUzcyuWZzbLiEzmcTgppuBx/O1WPelmKcx6bvdxVnER0IkmlxzSTS5FnFnE3w/79256wcqT0Kr18QaqBDJh/jJvTGUACQxEgs5oNH1A917SIBV0ZbYEuF1gXLAImSdKGpBDVACLHvR6YcE5Hqcm5Ej0JvwHzEKdwuQIUNioRnwJD51FecImE+x2h5gcc09YCF8E9Zqw7VbsLpQ4kZzB+B/wtpo7oBYz6UozNOYmjmwFi7bQwuEP051sWblkc/zH/F6TQeT4EINAAAAAElFTkSuQmCC">
+<link rel="icon" type="image/png" sizes="16x16" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAeUlEQVR4nGNkgAJRCZn/DESC1y+eMMLYjKRqRjeIEZfmR/dvoPDlFDWwGsJEjGZcYlgNQFYop6iBYjM2Q7C6AKYZG5toA5Btw+V8BgYGBqyBiEsDNpdgdQE2hSTFAj4NRBtALMBrAMwVZMUCsYDivEAdF5DqCuTsDABTrivgOudegwAAAABJRU5ErkJggg==">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
 <link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
@@ -310,8 +310,9 @@ svg.leaflet-zoom-animated{will-change:transform}
     }
     .logo{order:1;}
     .count-tag{display:none;}
-    .account-area{order:2; margin-left:auto; gap:6px;}
-    .search-box{order:3; flex:1 1 100%; max-width:none;}
+    .map-toggle{order:2; margin-left:8px; padding:7px 10px; font-size:10.5px;}
+    .account-area{order:3; margin-left:auto; gap:6px;}
+    .search-box{order:4; flex:1 1 100%; max-width:none;}
     .search-box input{font-size:16px; padding:11px 14px 11px 34px;} /* 16px evita el zoom automático de Safari al enfocar */
     #loginBtn, #addWorkBtn{font-size:0; padding:9px 11px;}
     #loginBtn::after{content:"Entrar"; font-size:11.5px;}
@@ -1025,6 +1026,29 @@ svg.leaflet-zoom-animated{will-change:transform}
     background:none; border:none; cursor:pointer;
     font-size:14px; color:var(--ink-soft); line-height:1;
   }
+  .route-panel-header-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-shrink:0;
+  }
+  #routePanelMinimize{
+    font-size:12px;
+    transition:transform .15s ease;
+  }
+  .route-panel.minimized #routePanelMinimize{transform:rotate(180deg);}
+  .route-count-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:400;
+    font-size:10.5px;
+    color:var(--ink-soft);
+  }
+  /* Panel "minimizado": solo queda visible la cabecera, para poder seguir
+     tocando chinchetas del mapa (y usar el "+" de cada una) sin que el
+     cuerpo del panel de ruta lo tape. El estado se recuerda mientras se
+     sigue eligiendo obras. */
+  .route-panel.minimized .route-panel-body{display:none;}
+  .route-panel.minimized{max-height:none;}
   .route-mode-row{
     display:flex;
     gap:6px;
@@ -1157,10 +1181,12 @@ svg.leaflet-zoom-animated{will-change:transform}
   .scale-item .d{border-radius:50%;}
 
   .map-toggle{
+    /* Vive dentro de la cabecera (no flotando sobre el mapa/listado) para que
+       nunca tape el botón de filtros, el de "volver al listado" ni la parte
+       superior del panel de ruta: esos tres viven en la esquina superior
+       izquierda del área de debajo, justo donde flotaba antes este botón. */
     display:none;
-    position:absolute;
-    top:12px; left:12px;
-    z-index:600;
+    flex-shrink:0;
     align-items:center;
     gap:6px;
     background:var(--ink);
@@ -1380,6 +1406,7 @@ svg.leaflet-zoom-animated{will-change:transform}
 <div class="wrap">
   <header>
     <div class="logo"><b>ARCH</b>-MAP<span class="sub">ATLAS DE ARQUITECTURA · ED. INTERNACIONAL</span></div>
+    <button class="map-toggle" id="mapToggleBtn">Ver mapa</button>
     <div class="search-box">
       <input id="searchInput" type="text" placeholder="Buscar por obra, arquitecto o ciudad…">
     </div>
@@ -1396,8 +1423,6 @@ svg.leaflet-zoom-animated{will-change:transform}
   </header>
 
   <div class="body">
-    <button class="map-toggle" id="mapToggleBtn">Ver mapa</button>
-
     <aside class="sidebar" id="sidebar">
       <!-- LIST VIEW -->
       <div id="listView">
@@ -1504,9 +1529,13 @@ svg.leaflet-zoom-animated{will-change:transform}
       </div>
       <div class="route-panel" id="routePanel">
         <div class="route-panel-header">
-          <span>Ruta / itinerario</span>
-          <button id="routePanelClose" type="button" title="Cerrar panel">✕</button>
+          <span>Ruta / itinerario <span id="routeStopsCountTag" class="route-count-tag" style="display:none;"></span></span>
+          <div class="route-panel-header-actions">
+            <button id="routePanelMinimize" type="button" title="Minimizar panel">▾</button>
+            <button id="routePanelClose" type="button" title="Cerrar panel">✕</button>
+          </div>
         </div>
+        <div class="route-panel-body" id="routePanelBody">
         <div class="route-mode-row">
           <button class="route-mode-btn active" id="routeModeWalk" type="button">A pie</button>
           <button class="route-mode-btn" id="routeModeDrive" type="button">En coche</button>
@@ -1518,6 +1547,7 @@ svg.leaflet-zoom-animated{will-change:transform}
         <div class="route-summary" id="routeSummary" style="display:none;"></div>
         <button class="route-clear-btn route-gmaps-btn" id="routeGmapsBtn" type="button" style="display:none;">📍 Abrir en Google Maps</button>
         <button class="route-clear-btn" id="routeClearBtn" type="button">Vaciar ruta</button>
+        </div>
       </div>
       <div class="map-legend">
         <div class="title">Relevancia de la obra</div>
@@ -3508,10 +3538,23 @@ function setRouteModeActive(active){
   routeModeBtn.classList.toggle('active', active);
   routePanel.classList.toggle('show', active);
   mapArea.classList.toggle('route-panel-open', active);
+  if(active) setRoutePanelMinimized(false);
   renderList();
 }
 routeModeBtn.addEventListener('click', ()=> setRouteModeActive(!routeModeActive));
 document.getElementById('routePanelClose').addEventListener('click', ()=> setRouteModeActive(false));
+
+/* Minimizar el panel de ruta: deja solo la cabecera visible para poder tocar
+   las chinchetas del mapa (y su botón "+") mientras se sigue eligiendo qué
+   obras entran en la ruta, sin cerrar el panel del todo. */
+const routePanelMinimizeBtn = document.getElementById('routePanelMinimize');
+let routePanelMinimized = false;
+function setRoutePanelMinimized(min){
+  routePanelMinimized = min;
+  routePanel.classList.toggle('minimized', min);
+  routePanelMinimizeBtn.title = min ? 'Expandir panel' : 'Minimizar panel';
+}
+routePanelMinimizeBtn.addEventListener('click', ()=> setRoutePanelMinimized(!routePanelMinimized));
 
 document.getElementById('routeModeWalk').addEventListener('click', ()=>{
   routeTravelMode = 'walk';
@@ -3638,6 +3681,13 @@ document.addEventListener('click', function(e){
 function renderRoutePanel(){
   const gmapsBtn = document.getElementById('routeGmapsBtn');
   const meOn = routeStartFromMe && routeStartCoords;
+  const countTag = document.getElementById('routeStopsCountTag');
+  if(routeStops.length > 0){
+    countTag.textContent = `(${routeStops.length})`;
+    countTag.style.display = '';
+  } else {
+    countTag.style.display = 'none';
+  }
   if(routeStops.length === 0){
     routeStopsList.innerHTML = meOn
       ? `<li class="route-stop"><span class="num">📍</span><span class="rname">Tu ubicación</span></li><li class="route-empty-hint">Añade obras a la ruta desde el listado (botón "+") o desde su ficha de detalle.</li>`
