@@ -1157,6 +1157,52 @@ svg.leaflet-zoom-animated{will-change:transform}
   .route-clear-btn:hover{background:var(--line-soft);}
   .route-gmaps-btn{background:#1f6fd6; color:#fff; border-color:#1f6fd6;}
   .route-gmaps-btn:hover{background:#1a5fbb;}
+  .route-save-btn{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .route-save-btn:hover{background:#000;}
+
+  .route-saved-list{
+    margin:0 14px 12px;
+    padding-top:10px;
+    border-top:1px solid var(--line-soft);
+  }
+  .route-saved-list .title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .saved-route-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:6px;
+    padding:6px 0;
+    font-size:12px;
+  }
+  .saved-route-item .srn{
+    cursor:pointer;
+    color:var(--ink);
+    text-decoration:underline;
+    text-decoration-color:var(--line);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .saved-route-item .srn:hover{color:#1f6fd6;}
+  .saved-route-item .srcount{
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    flex-shrink:0;
+    margin-left:6px;
+  }
+  .saved-route-item .srdel{
+    background:none; border:none; cursor:pointer;
+    color:var(--ink-soft); font-size:13px; flex-shrink:0; margin-left:8px;
+  }
+  .saved-route-item .srdel:hover{color:#c0392b;}
 
   .map-legend{
     position:absolute;
@@ -1546,7 +1592,9 @@ svg.leaflet-zoom-animated{will-change:transform}
         <ul class="route-stops" id="routeStopsList"></ul>
         <div class="route-summary" id="routeSummary" style="display:none;"></div>
         <button class="route-clear-btn route-gmaps-btn" id="routeGmapsBtn" type="button" style="display:none;">📍 Abrir en Google Maps</button>
+        <button class="route-clear-btn route-save-btn" id="routeSaveBtn" type="button" style="display:none;">💾 Guardar ruta en mi cuenta</button>
         <button class="route-clear-btn" id="routeClearBtn" type="button">Vaciar ruta</button>
+        <div class="route-saved-list" id="routeSavedList" style="display:none;"></div>
         </div>
       </div>
       <div class="map-legend">
@@ -1576,6 +1624,27 @@ svg.leaflet-zoom-animated{will-change:transform}
 </div>
 
 <!-- ---------- MODAL: INICIAR SESIÓN ---------- -->
+<div class="modal-overlay" id="saveRouteOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Guardar ruta</h3>
+      <button class="modal-close" data-close="saveRouteOverlay">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint">Se guarda en tu cuenta local (solo en este navegador), para poder recuperarla más adelante.</p>
+      <div class="field">
+        <label>Nombre de la ruta</label>
+        <input type="text" id="saveRouteName" placeholder="Ej. Fin de semana en Barcelona">
+      </div>
+      <div class="form-error" id="saveRouteError">Escribe un nombre para la ruta.</div>
+      <div class="modal-actions">
+        <button class="btn" data-close="saveRouteOverlay">Cancelar</button>
+        <button class="btn primary" id="saveRouteSubmit">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="loginOverlay">
   <div class="modal">
     <div class="modal-head">
@@ -3004,6 +3073,38 @@ const WORKS = [
 {id:1328,name:"Facultad de Derecho de Buenos Aires",architect:"Arturo Prins y León Dourge",year:1949,city:"Buenos Aires",country:"Argentina",style:"Arquitectura neoclásica",relevance:1,icon:"monumental",lat:-34.5827,lon:-58.3922,desc:"Edificio de imponente columnata neoclásica y amplia escalinata, sede de la facultad de derecho de la Universidad de Buenos Aires."},
 {id:1329,name:"Museo Nacional de Bellas Artes (Argentina)",architect:"Alejandro Christophersen",year:1933,city:"Buenos Aires",country:"Argentina",style:"Arquitectura ecléctica",relevance:1,icon:"monumental",lat:-34.5836,lon:-58.3931,desc:"Antigua casa de bombas de aguas corrientes reconvertida en el principal museo de bellas artes de Argentina."},
 {id:1330,name:"Museo Larco",architect:"Anónimo (hacienda colonial reconvertida)",year:1926,city:"Lima",country:"Perú",style:"Arquitectura colonial",relevance:1,icon:"monumental",lat:-12.0733,lon:-77.0658,desc:"Museo instalado en una casona virreinal del siglo XVIII construida sobre una pirámide preinca, con jardines de buganvillas."},
+{id:1331,name:"Iglesia de la Paz de Świdnica",architect:"Albrecht von Sabisch",year:1657,city:"Swidnica",country:"Polonia",style:"Arquitectura de entramado de madera barroca",relevance:2,icon:"geometrico",lat:50.8447,lon:16.4864,desc:"Una de las mayores iglesias de entramado de madera de Europa, construida sin un solo clavo de hierro tras la Paz de Westfalia."},
+{id:1332,name:"Torre Ostankino",architect:"Nikolai Nikitin",year:1967,city:"Moscú",country:"Rusia",style:"Ingeniería estructural soviética",relevance:1,icon:"geometrico",lat:55.8197,lon:37.6117,desc:"Torre de televisión de hormigón pretensado que fue la estructura más alta del mundo durante varios años tras su construcción."},
+{id:1333,name:"Narkomfin",architect:"Moiséi Ginzburg",year:1930,city:"Moscú",country:"Rusia",style:"Constructivismo ruso",relevance:2,icon:"geometrico",lat:55.7644,lon:37.5794,desc:"Bloque de vivienda colectiva experimental pensado como condensador social, referencia directa para la Unité d'Habitation de Le Corbusier."},
+{id:1334,name:"Casa Bajo la Roca (Stone House)",architect:"Anónimo",year:1972,city:"Fafe",country:"Portugal",style:"Arquitectura experimental vernácula",relevance:1,icon:"organico",lat:41.4644,lon:-8.1994,desc:"Vivienda encajada literalmente entre cuatro enormes rocas graníticas, sin apenas muros propios, célebre por su aspecto de piedra habitada."},
+{id:1335,name:"Muro de Berlín (East Side Gallery)",architect:"Varios artistas urbanos",year:1990,city:"Berlín",country:"Alemania",style:"Arte urbano sobre arquitectura militar",relevance:2,icon:"geometrico",lat:52.5051,lon:13.4396,desc:"El tramo más largo conservado del antiguo muro, hoy convertido en la galería de arte urbano al aire libre más extensa del mundo."},
+{id:1336,name:"Ayuntamiento de Hamburgo",architect:"Martin Haller",year:1897,city:"Hamburgo",country:"Alemania",style:"Arquitectura neorrenacentista",relevance:1,icon:"monumental",lat:53.5507,lon:9.9922,desc:"Ayuntamiento con más salas que el palacio de Buckingham, construido sobre más de 4000 pilotes de madera en terreno pantanoso."},
+{id:1337,name:"Rathaus de Bremen y estatua de Rolando",architect:"Anónimo (fábrica gótica, fachada renacentista)",year:1410,city:"Bremen",country:"Alemania",style:"Gótico/Renacimiento del Weser",relevance:1,icon:"monumental",lat:53.0759,lon:8.8072,desc:"Ayuntamiento gótico con una fachada renacentista añadida en el siglo XVII, junto a la estatua medieval de Rolando, símbolo de las libertades urbanas."},
+{id:1338,name:"Torre de televisión de Stuttgart",architect:"Fritz Leonhardt",year:1956,city:"Stuttgart",country:"Alemania",style:"Ingeniería estructural moderna",relevance:1,icon:"geometrico",lat:48.7524,lon:9.1957,desc:"Primera torre de televisión del mundo construida en hormigón armado, modelo que inspiró a cientos de torres similares en todo el planeta."},
+{id:1339,name:"Torre Gálata",architect:"Genoveses medievales",year:1348,city:"Estambul",country:"Turquía",style:"Arquitectura militar genovesa",relevance:2,icon:"geometrico",lat:41.0256,lon:28.9744,desc:"Torre de vigilancia genovesa que domina el Cuerno de Oro, uno de los miradores panorámicos más antiguos y populares de Estambul."},
+{id:1340,name:"Torres del Silencio de Baku (Ciudad Vieja, Palacio de los Shirvanshahs)",architect:"Anónimo (dinastía Shirvanshah)",year:1411,city:"Bakú",country:"Azerbaiyán",style:"Arquitectura islámica del Cáucaso",relevance:2,icon:"monumental",lat:40.3661,lon:49.8347,desc:"Complejo palaciego de los antiguos gobernantes de Shirván dentro de la ciudad amurallada de Bakú, Patrimonio de la Humanidad."},
+{id:1341,name:"Torres Petronas (referencia complementaria: Kompleks Dayabumi)",architect:"Kumpulan Akitek / MAA",year:1984,city:"Kuala Lumpur",country:"Malasia",style:"Arquitectura islámica moderna",relevance:1,icon:"geometrico",lat:3.1447,lon:101.6942,desc:"Uno de los primeros rascacielos del sudeste asiático en incorporar arcos y celosías de inspiración islámica en su fachada de hormigón."},
+{id:1342,name:"Catedral Metropolitana de Manila",architect:"Fernando Ocampo",year:1958,city:"Manila",country:"Filipinas",style:"Arquitectura neorrománica",relevance:1,icon:"monumental",lat:14.5919,lon:120.9752,desc:"Catedral reconstruida varias veces tras terremotos y la Segunda Guerra Mundial, con una fachada de hormigón de inspiración románica."},
+{id:1343,name:"Castillo del Morro de La Habana",architect:"Bautista Antonelli",year:1630,city:"La Habana",country:"Cuba",style:"Arquitectura militar española",relevance:2,icon:"monumental",lat:23.1548,lon:-82.3486,desc:"Fortaleza en la entrada de la bahía habanera, con un faro añadido en el siglo XIX, ejemplo de la ingeniería militar renacentista española en el Caribe."},
+{id:1344,name:"Catedral de Santiago de Guatemala (Antigua)",architect:"Anónimo (fábrica colonial, ruinas)",year:1680,city:"Antigua Guatemala",country:"Guatemala",style:"Arquitectura barroca colonial centroamericana",relevance:2,icon:"monumental",lat:14.5573,lon:-90.7338,desc:"Ruinas de una catedral barroca destruida por terremotos, en el corazón de la antigua capital colonial, Patrimonio de la Humanidad."},
+{id:1345,name:"Casco Viejo de Panamá (Catedral)",architect:"Anónimo (fábrica colonial)",year:1796,city:"Ciudad de Panamá",country:"Panamá",style:"Arquitectura colonial española",relevance:1,icon:"monumental",lat:8.9524,lon:-79.5348,desc:"Catedral con torres revestidas de nácar de ostra perlífera, corazón del casco histórico panameño reconstruido tras el ataque de Morgan."},
+{id:1346,name:"Palacio Nacional de Haití (ruinas históricas)",architect:"Georges Baussan",year:1918,city:"Puerto Príncipe",country:"Haití",style:"Arquitectura ecléctica colonial",relevance:1,icon:"monumental",lat:18.5423,lon:-72.3385,desc:"Antigua residencia presidencial de estilo Beaux-Arts con cúpulas blancas, gravemente dañada por el terremoto de 2010."},
+{id:1347,name:"Iglesias pintadas de Moldavia (Voroneț)",architect:"Esteban el Grande",year:1488,city:"Voronet",country:"Rumanía",style:"Arquitectura religiosa moldava",relevance:2,icon:"monumental",lat:47.5211,lon:25.3661,desc:"Monasterio célebre por los frescos exteriores de un azul intensísimo conocido como 'azul de Voroneț', Patrimonio de la Humanidad."},
+{id:1348,name:"Torres Gemelas de Vilna (Catedral y campanario)",architect:"Laurynas Gucevičius",year:1801,city:"Vilna",country:"Lituania",style:"Arquitectura neoclásica báltica",relevance:1,icon:"monumental",lat:54.6841,lon:25.2883,desc:"Catedral neoclásica con un campanario independiente que fue en su día torre de vigilancia de la muralla medieval de la ciudad."},
+{id:1349,name:"Casa Rúndetårn (Torre Redonda)",architect:"Christian IV",year:1642,city:"Copenhague",country:"Dinamarca",style:"Arquitectura renacentista danesa",relevance:1,icon:"geometrico",lat:55.6805,lon:12.5768,desc:"Antiguo observatorio astronómico con una rampa en espiral ascendente en vez de escaleras, por la que aún hoy se puede subir en bicicleta."},
+{id:1350,name:"Castillo de Caernarfon",architect:"Jacobo de San Jorge",year:1330,city:"Caernarfon",country:"Reino Unido",style:"Arquitectura militar medieval galesa",relevance:2,icon:"monumental",lat:53.1394,lon:-4.2769,desc:"Fortaleza con torres poligonales inspiradas en las murallas de Constantinopla, construida por Eduardo I para dominar el norte de Gales."},
+{id:1351,name:"Giant's Causeway (Calzada del Gigante)",architect:"Formación volcánica natural",year:-60000000,city:"Bushmills",country:"Reino Unido",style:"Arquitectura natural basáltica",relevance:2,icon:"organico",lat:55.2408,lon:-6.5116,desc:"Cuarenta mil columnas de basalto hexagonal formadas por antiguas coladas de lava, asociadas en la mitología irlandesa a un gigante constructor de puentes."},
+{id:1352,name:"Torre Guinness Storehouse (antigua planta de fermentación)",architect:"Anónimo (rehabilitación industrial)",year:1904,city:"Dublín",country:"Irlanda",style:"Rehabilitación industrial",relevance:1,icon:"geometrico",lat:53.3419,lon:-6.2867,desc:"Antiguo edificio industrial victoriano de la fábrica de cerveza Guinness, reconvertido en museo con forma de pinta gigante de siete plantas."},
+{id:1353,name:"Templo de Kedarnath",architect:"Anónimo (fábrica himalaya)",year:800,city:"Kedarnath",country:"India",style:"Arquitectura religiosa himalaya",relevance:1,icon:"monumental",lat:30.7346,lon:79.0669,desc:"Templo de piedra dedicado a Shiva a más de 3500 m de altitud en el Himalaya, uno de los santuarios de peregrinación más exigentes de la India."},
+{id:1354,name:"Paro Taktsang (Nido del Tigre)",architect:"Anónimo (fábrica budista bhutanesa)",year:1692,city:"Paro",country:"Bután",style:"Arquitectura budista himalaya",relevance:3,icon:"monumental",lat:27.4914,lon:89.3633,desc:"Monasterio budista aferrado a un acantilado a 900 m sobre el valle de Paro, uno de los lugares sagrados más venerados del budismo tibetano."},
+{id:1355,name:"Templo de la Literatura de Hanói",architect:"Dinastía Ly",year:1070,city:"Hanói",country:"Vietnam",style:"Arquitectura confuciana vietnamita",relevance:1,icon:"monumental",lat:21.0294,lon:105.8355,desc:"Primera universidad de Vietnam, dedicada a Confucio, con patios sucesivos y estelas sobre tortugas de piedra que honran a antiguos eruditos."},
+{id:1356,name:"Torre N Seúl",architect:"Anónimo",year:1971,city:"Seúl",country:"Corea del Sur",style:"Torre de comunicaciones moderna",relevance:1,icon:"geometrico",lat:37.5512,lon:126.9882,desc:"Torre de comunicaciones sobre el monte Namsan, mirador panorámico y símbolo romántico de la ciudad por sus miles de candados del amor."},
+{id:1357,name:"Ger Distrito / Palacio de Gobierno de Ulán Bator",architect:"Anónimo",year:2006,city:"Ulán Bator",country:"Mongolia",style:"Arquitectura monumental contemporánea",relevance:1,icon:"monumental",lat:47.9184,lon:106.9177,desc:"Fachada monumental con una estatua sedente de Gengis Kan de 10 m, sede del gobierno mongol en la plaza Sükhbaatar."},
+{id:1358,name:"Grand Ole Opry House (referencia complementaria: Ryman Auditorium)",architect:"Anónimo",year:1892,city:"Nashville",country:"Estados Unidos",style:"Arquitectura religiosa reconvertida",relevance:1,icon:"monumental",lat:36.1612,lon:-86.7775,desc:"Antiguo tabernáculo religioso reconvertido en sala de conciertos, cuna histórica de la música country estadounidense."},
+{id:1359,name:"Ateneo de Helsinki",architect:"Theodor Höijer",year:1887,city:"Helsinki",country:"Finlandia",style:"Arquitectura neorrenacentista",relevance:1,icon:"monumental",lat:60.1699,lon:24.9459,desc:"Museo nacional de bellas artes de Finlandia, de fachada neorrenacentista, con la colección de arte finlandés más importante del país."},
+{id:1360,name:"Muralla de Benín (referencia histórica)",architect:"Reino de Benín",year:1200,city:"Benin City",country:"Nigeria",style:"Arquitectura africana precolonial",relevance:1,icon:"geometrico",lat:6.335,lon:5.6037,desc:"Antiguo sistema de murallas y fosos que rodeó la capital del reino de Benín, uno de los mayores movimientos de tierra prehistóricos del mundo."},
+{id:1361,name:"Torre de las Naciones (Kwame Nkrumah Mausoleum)",architect:"Don Arthur y Krokow",year:1992,city:"Accra",country:"Ghana",style:"Arquitectura conmemorativa postcolonial",relevance:1,icon:"geometrico",lat:5.5445,lon:-0.199,desc:"Mausoleo de mármol dedicado al primer presidente de Ghana, con una forma que evoca una espada invertida clavada en el suelo."},
+{id:1362,name:"Instituto Mundial del Boabab (Eco-Museo de Sine)",architect:"Anónimo",year:2013,city:"Fadiouth",country:"Senegal",style:"Arquitectura vernácula contemporánea",relevance:1,icon:"organico",lat:14.15,lon:-16.85,desc:"Museo comunitario construido con técnicas tradicionales de tierra y fibra vegetal, integrado en un poblado de conchas junto al delta del Sine-Saloum."},
 ];
 
 /* ================= MAPA REAL (Leaflet + teselas de calles) ================= */
@@ -3197,7 +3298,17 @@ const markers = {};
 function addMarkerFor(w){
   const marker = L.marker([w.lat, w.lon], {icon: makeIcon(w, map.getZoom(), false)});
   marker.bindTooltip(`${w.name} — ${w.city}`, {direction:'top', offset:[0,-6], className:'arch-tooltip'});
-  marker.on('click', ()=> selectWork(w.id));
+  marker.on('click', (e)=>{
+    /* Si el toque fue sobre el símbolo "+"/"✓" del propio pin, ese gesto ya
+       lo gestiona el listener delegado de más abajo (añadir/quitar de la
+       ruta) y no debe además "seleccionar" la obra: seleccionarla dispara
+       un flyTo que recentra y hace zoom en el mapa, que es justo el salto
+       de pantalla que no queremos al tocar el "+". Se comprueba el evento
+       nativo (originalEvent) en vez de depender del orden de propagación,
+       para que funcione igual en cualquier navegador táctil. */
+    if(e.originalEvent && e.originalEvent.target && e.originalEvent.target.closest && e.originalEvent.target.closest('.pin-add-route')) return;
+    selectWork(w.id);
+  });
   marker.addTo(map);
   markers[w.id] = marker;
 }
@@ -3570,6 +3681,7 @@ document.getElementById('routeModeDrive').addEventListener('click', ()=>{
 });
 document.getElementById('routeClearBtn').addEventListener('click', ()=>{
   routeStops = [];
+  refreshRouteMarkerIcons();
   renderRoutePanel();
   renderList();
   drawRoute();
@@ -3688,6 +3800,7 @@ function renderRoutePanel(){
   } else {
     countTag.style.display = 'none';
   }
+  renderRouteSaveUI();
   if(routeStops.length === 0){
     routeStopsList.innerHTML = meOn
       ? `<li class="route-stop"><span class="num">📍</span><span class="rname">Tu ubicación</span></li><li class="route-empty-hint">Añade obras a la ruta desde el listado (botón "+") o desde su ficha de detalle.</li>`
@@ -3718,6 +3831,97 @@ function renderRoutePanel(){
   });
   attachRouteDragHandlers();
 }
+
+/* ================= RUTAS GUARDADAS EN LA CUENTA LOCAL =================
+   Igual mecánica que favoritos/visitadas (localStorage, sin servidor), pero
+   con una clave por cuenta para que las rutas guardadas por una persona no
+   se mezclen con las de otra si varias usan el mismo navegador. */
+function savedRoutesKey(user){
+  return 'archmap_saved_routes::' + (user.email || user.name).trim().toLowerCase();
+}
+function getSavedRoutes(){
+  const user = getUser();
+  if(!user) return [];
+  try{ return JSON.parse(localStorage.getItem(savedRoutesKey(user)) || '[]'); }catch(e){ return []; }
+}
+function saveSavedRoutes(list){
+  const user = getUser();
+  if(!user) return;
+  localStorage.setItem(savedRoutesKey(user), JSON.stringify(list));
+}
+function refreshRouteMarkerIcons(){
+  ALL_WORKS.forEach(w=>{
+    if(markers[w.id]) markers[w.id].setIcon(makeIcon(w, map.getZoom(), w.id===activeId));
+  });
+}
+function renderRouteSaveUI(){
+  const saveBtn = document.getElementById('routeSaveBtn');
+  const listEl = document.getElementById('routeSavedList');
+  const user = getUser();
+  saveBtn.style.display = (user && routeStops.length > 0) ? '' : 'none';
+  const saved = getSavedRoutes();
+  if(!user || saved.length === 0){
+    listEl.style.display = 'none';
+    listEl.innerHTML = '';
+    return;
+  }
+  listEl.style.display = '';
+  listEl.innerHTML = '<div class="title">Mis rutas guardadas</div>' + saved.map((r, i)=>`
+    <div class="saved-route-item">
+      <span class="srn" data-load-route="${i}" title="Cargar esta ruta">${r.name}</span>
+      <span class="srcount">${r.stops.length} obra${r.stops.length===1?'':'s'}</span>
+      <button class="srdel" data-del-route="${i}" type="button" title="Eliminar">✕</button>
+    </div>`).join('');
+  listEl.querySelectorAll('[data-load-route]').forEach(el=>{
+    el.addEventListener('click', ()=> loadSavedRoute(parseInt(el.dataset.loadRoute, 10)));
+  });
+  listEl.querySelectorAll('[data-del-route]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = parseInt(el.dataset.delRoute, 10);
+      const list = getSavedRoutes();
+      list.splice(idx, 1);
+      saveSavedRoutes(list);
+      renderRouteSaveUI();
+    });
+  });
+}
+function loadSavedRoute(idx){
+  const saved = getSavedRoutes();
+  const route = saved[idx];
+  if(!route) return;
+  const validIds = new Set(ALL_WORKS.map(w=>w.id));
+  routeStops = route.stops.filter(id => validIds.has(id));
+  routeTravelMode = route.travelMode === 'drive' ? 'drive' : 'walk';
+  document.getElementById('routeModeWalk').classList.toggle('active', routeTravelMode === 'walk');
+  document.getElementById('routeModeDrive').classList.toggle('active', routeTravelMode === 'drive');
+  if(!routeModeActive) setRouteModeActive(true);
+  refreshRouteMarkerIcons();
+  renderRoutePanel();
+  renderList();
+  drawRoute();
+  toast(`Ruta "${route.name}" cargada.`);
+}
+
+const routeSaveBtn = document.getElementById('routeSaveBtn');
+routeSaveBtn.addEventListener('click', ()=>{
+  if(!getUser() || routeStops.length === 0) return;
+  document.getElementById('saveRouteError').style.display = 'none';
+  document.getElementById('saveRouteName').value = '';
+  openModal('saveRouteOverlay');
+});
+document.getElementById('saveRouteSubmit').addEventListener('click', ()=>{
+  const name = document.getElementById('saveRouteName').value.trim();
+  if(!name){
+    document.getElementById('saveRouteError').style.display = 'block';
+    return;
+  }
+  const list = getSavedRoutes();
+  list.push({name, stops: routeStops.slice(), travelMode: routeTravelMode, createdAt: Date.now()});
+  saveSavedRoutes(list);
+  closeModal('saveRouteOverlay');
+  renderRouteSaveUI();
+  toast('Ruta guardada en tu cuenta.');
+});
 
 /* ---- arrastrar una parada de la ruta hacia arriba o abajo para reordenarla ----
    Implementado con Pointer Events (en vez de la API HTML5 drag-and-drop) para que
@@ -4280,6 +4484,7 @@ function refreshAccountUI(){
     userChip.style.display = 'none';
   }
   if(currentGalleryWork) renderGallery(currentGalleryWork);
+  renderRouteSaveUI();
 }
 refreshAccountUI();
 
