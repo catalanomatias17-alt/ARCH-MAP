@@ -329,7 +329,8 @@ svg.leaflet-zoom-animated{will-change:transform}
       font-size:8.5px !important;
       line-height:1.25;
     }
-    .route-panel-open .leaflet-control-attribution{display:none;}
+    .route-panel-open .leaflet-control-attribution,
+    .mini-preview-open .leaflet-control-attribution{display:none;}
   }
 
   .filters{
@@ -4567,6 +4568,7 @@ let miniPreviewToken = 0;
 
 function hideMiniPreview(){
   miniPreview.classList.remove('show');
+  mapArea.classList.remove('mini-preview-open');
 }
 
 async function showMiniPreview(w){
@@ -4587,6 +4589,7 @@ async function showMiniPreview(w){
     setTimeout(()=> map.invalidateSize(), 210);
   };
   miniPreview.classList.add('show');
+  mapArea.classList.add('mini-preview-open'); // oculta la atribución del mapa (arriba-derecha) mientras la tarjeta está abierta, para que no se solapen
 
   let result = photoCache[w.id];
   if(result === undefined){
