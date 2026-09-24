@@ -3764,7 +3764,10 @@ function toggleRouteStop(id){
   }
   renderRoutePanel();
   renderList();
-  drawRoute();
+  /* fit=false: al añadir o quitar UNA parada (sobre todo con el "+" del pin
+     en el mapa) no se debe recentrar ni hacer zoom para encajar toda la
+     ruta — el mapa se queda exactamente donde estaba, tal y como se pidió. */
+  drawRoute(false);
   // refresca el botón de la vista de detalle si está abierta sobre esta misma obra
   if(activeId === id){
     const btn = document.getElementById('detailAddRouteBtn');
@@ -4040,7 +4043,7 @@ async function fetchOsrmRoute(stops, mode){
    responde, traza una línea recta entre paradas consecutivas y estima distancia/
    tiempo con Haversine, dejándolo claro en el resumen como estimación */
 let routeDrawToken = 0;
-async function drawRoute(){
+async function drawRoute(fit=true){
   const myToken = ++routeDrawToken;
   routeLayerGroup.clearLayers();
   renderRoutePanel();
@@ -4066,7 +4069,7 @@ async function drawRoute(){
   if(real){
     L.polyline(real.latlngs, {color:'#1f6fd6', weight:4, opacity:0.85}).addTo(routeLayerGroup);
     showRouteSummary(real.km, real.mins, false);
-    fitRouteBounds(stops);
+    if(fit) fitRouteBounds(stops);
     return;
   }
 
@@ -4080,7 +4083,7 @@ async function drawRoute(){
   }
   const mins = Math.round(totalKm / speedKmh * 60);
   showRouteSummary(totalKm, mins, true);
-  fitRouteBounds(stops);
+  if(fit) fitRouteBounds(stops);
 }
 function showRouteSummary(km, mins, isEstimate){
   routeSummary.style.display = '';
