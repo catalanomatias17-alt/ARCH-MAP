@@ -3064,6 +3064,12 @@ startTileProvider(0);
    intentando en segundo plano por si acaba cargando más tarde. */
 setTimeout(()=>{ if(!anyTileEverLoaded) showMapLoadWarning(); }, 8000);
 
+/* declarada aquí (antes de makeIcon y de que se creen los marcadores) porque
+   makeIcon la lee para saber si una obra ya está en la ruta; si se declarara
+   más abajo, como esta variable se usa antes de definirse en el orden de
+   ejecución, JavaScript lanza un ReferenceError que detiene todo el script. */
+let routeStops = []; // array of work ids, in order
+
 /* ---------- tamaño de chincheta según relevancia y nivel de zoom (escala 1-7) ---------- */
 function sizeForZoom(relevance, zoom){
   const base = 4 + relevance*2.1;
@@ -3206,7 +3212,6 @@ let nearMeActive = false;
 let nearMeCoords = null; // {lat, lon}
 let routeModeActive = false;
 let routeTravelMode = 'walk'; // 'walk' | 'drive'
-let routeStops = []; // array of work ids, in order
 let routeStartFromMe = false;
 let routeStartCoords = null; // {lat, lon}, set when routeStartFromMe is active
 
@@ -3627,7 +3632,7 @@ document.addEventListener('click', function(e){
   if(!btn) return;
   e.stopPropagation();
   e.preventDefault();
-  toggleRouteStop(btn.getAttribute('data-work-id'));
+  toggleRouteStop(Number(btn.getAttribute('data-work-id')));
 }, true);
 
 function renderRoutePanel(){
