@@ -296,6 +296,36 @@ svg.leaflet-zoom-animated{will-change:transform}
     .field-row{flex-direction:column; gap:0;}
     .modal{max-height:92dvh;}
     .lightbox-close{width:42px; height:42px;}
+
+    /* ---- cabecera: en pantallas estrechas el buscador pasa a su propia
+       fila completa (deja de quedar apretado en medio), y el bloque de
+       sesión se compacta a iconos para que el avatar nunca quede cortado ---- */
+    header{
+      flex-wrap:wrap;
+      height:auto;
+      min-height:56px;
+      padding:8px 14px;
+      gap:8px;
+      row-gap:8px;
+    }
+    .logo{order:1;}
+    .count-tag{display:none;}
+    .account-area{order:2; margin-left:auto; gap:6px;}
+    .search-box{order:3; flex:1 1 100%; max-width:none;}
+    .search-box input{font-size:16px; padding:11px 14px 11px 34px;} /* 16px evita el zoom automático de Safari al enfocar */
+    #loginBtn, #addWorkBtn{font-size:0; padding:9px 11px;}
+    #loginBtn::after{content:"Entrar"; font-size:11.5px;}
+    #addWorkBtn::after{content:"+"; font-size:16px; font-weight:700;}
+    .user-chip .uname{display:none;}
+
+    /* ---- atribución del mapa: se mueve fuera del camino de la leyenda de
+       relevancia y del icono de ruta, y se compacta para no tapar nada ---- */
+    .leaflet-control-attribution{
+      max-width:52vw;
+      font-size:8.5px !important;
+      line-height:1.25;
+    }
+    .route-panel-open .leaflet-control-attribution{display:none;}
   }
 
   .filters{
@@ -876,12 +906,34 @@ svg.leaflet-zoom-animated{will-change:transform}
   }
 
   .arch-pin{
+    position:relative;
     border-radius:50%;
     border:1.4px solid #fbfbf9;
     box-shadow:0 0 0 1px rgba(21,24,28,0.08);
   }
   .arch-pin.selected{
     box-shadow:0 0 0 3px rgba(21,24,28,0.22);
+  }
+  .pin-add-route{
+    position:absolute;
+    inset:8%;
+    margin:auto;
+    border-radius:50%;
+    background:#fff;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    line-height:1;
+    box-shadow:0 0 0 1px rgba(21,24,28,0.18), 0 1px 3px rgba(21,24,28,0.25);
+    cursor:pointer;
+    pointer-events:auto;
+  }
+  .pin-add-route.in-route{
+    background:var(--ink);
+    color:#fff;
   }
   .arch-tooltip{
     font-family:'IBM Plex Sans', sans-serif !important;
@@ -2891,16 +2943,53 @@ const WORKS = [
 {id:1297,name:"Alminar de Malwiya",architect:"Anónimo (fábrica abasí)",year:852,city:"Samarra",country:"Irak",style:"Arquitectura islámica abasí",relevance:2,icon:"monumental",lat:34.1989,lon:43.8907,desc:"Alminar helicoidal de 52 metros construido para la Gran Mezquita de Samarra, capital del califato abasí, único en su forma de espiral ascendente."},
 {id:1298,name:"Monasterio de Erdene Zuu",architect:"Abtai Sain Khan",year:1585,city:"Karakorum",country:"Mongolia",style:"Arquitectura budista mongola",relevance:2,icon:"monumental",lat:47.1975,lon:102.8442,desc:"Primer monasterio budista de Mongolia, construido con piedras de las ruinas de Karakorum, antigua capital del imperio mongol de Gengis Kan."},
 {id:1299,name:"Museo Nacional de Qatar",architect:"Jean Nouvel",year:2019,city:"Doha",country:"Catar",style:"Arquitectura contemporánea",relevance:2,icon:"moderno",lat:25.2679,lon:51.5361,desc:"Edificio formado por discos entrelazados inspirados en la rosa del desierto, un mineral cristalino que se forma bajo la arena de Catar."},
+{id:1300,name:"Casa da Cultura de Mafra",architect:"Arquitectos varios",year:1717,city:"Mafra",country:"Portugal",style:"Arquitectura barroca",relevance:1,icon:"monumental",lat:38.9372,lon:-9.3306,desc:"Convento-palacio barroco mandado construir por Juan V, con biblioteca de 40.000 volúmenes y una de las mayores colecciones de campanas de Europa."},
+{id:1301,name:"Estación de Trenes de São Bento",architect:"José Marques da Silva",year:1916,city:"Oporto",country:"Portugal",style:"Arquitectura beaux-arts",relevance:2,icon:"monumental",lat:41.1455,lon:-8.6108,desc:"Estación ferroviaria célebre por su vestíbulo revestido de veinte mil azulejos que narran escenas históricas y de transporte portuguesas."},
+{id:1302,name:"Museo Calouste Gulbenkian",architect:"Ruy Athouguia, Pedro Cid, Alberto Pessoa",year:1969,city:"Lisboa",country:"Portugal",style:"Arquitectura moderna portuguesa",relevance:2,icon:"moderno",lat:38.7369,lon:-9.1543,desc:"Museo modernista integrado en un parque ajardinado, diseñado para dialogar con la naturaleza y albergar la colección privada de Calouste Gulbenkian."},
+{id:1303,name:"Casa de Chá da Boa Nova",architect:"Álvaro Siza Vieira",year:1963,city:"Leça da Palmeira",country:"Portugal",style:"Arquitectura moderna portuguesa",relevance:2,icon:"organico",lat:41.2,lon:-8.7053,desc:"Casa de té construida sobre las rocas del litoral atlántico, con cubiertas quebradas que siguen la topografía natural del acantilado."},
+{id:1304,name:"Monasterio de Alcobaça",architect:"Anónimo (orden cisterciense)",year:1252,city:"Alcobaça",country:"Portugal",style:"Arquitectura gótica cisterciense",relevance:2,icon:"monumental",lat:39.5497,lon:-8.9772,desc:"El mayor templo gótico de Portugal, con las tumbas de Pedro I e Inés de Castro y una cocina monumental atravesada por un arroyo desviado."},
+{id:1305,name:"Universidad de Coímbra (Biblioteca Joanina)",architect:"Anónimo (fábrica joanina)",year:1728,city:"Coímbra",country:"Portugal",style:"Arquitectura barroca",relevance:2,icon:"monumental",lat:40.2081,lon:-8.4256,desc:"Biblioteca barroca de tres salas doradas donde murciélagos viven tras las estanterías para proteger los libros de insectos."},
+{id:1306,name:"Puente Mera",architect:"Anónimo",year:1899,city:"Ringebu",country:"Noruega",style:"Arquitectura de madera nórdica",relevance:1,icon:"geometrico",lat:61.5083,lon:10.1667,desc:"Puente cubierto de madera tradicional noruego construido con la técnica de entramado, sobre el río Gudbrandsdalslågen."},
+{id:1307,name:"Iglesia de madera de Heddal",architect:"Anónimo (fábrica medieval noruega)",year:1250,city:"Notodden",country:"Noruega",style:"Arquitectura de madera nórdica (stavkirke)",relevance:2,icon:"monumental",lat:59.5647,lon:9.1583,desc:"La mayor iglesia de madera de tipo stavkirke de Noruega, con estructura de mástiles tallados y tejados escalonados de estilo dragón vikingo."},
+{id:1308,name:"Grundtvigs Kirke",architect:"Peder Vilhelm Jensen-Klint",year:1940,city:"Copenhague",country:"Dinamarca",style:"Arquitectura expresionista de ladrillo",relevance:2,icon:"geometrico",lat:55.7031,lon:12.5389,desc:"Iglesia luterana con una fachada escalonada de ladrillo amarillo inspirada en los órganos de tubos y en las iglesias góticas de ladrillo danesas."},
+{id:1309,name:"Castillo de Kronborg",architect:"Anónimo (fábrica renacentista danesa)",year:1585,city:"Elsinor",country:"Dinamarca",style:"Arquitectura renacentista",relevance:2,icon:"monumental",lat:56.0392,lon:12.6217,desc:"Fortaleza renacentista en el estrecho de Øresund, inmortalizada por Shakespeare como el castillo de Hamlet, Patrimonio de la Humanidad."},
+{id:1310,name:"Iglesia de Bagsværd",architect:"Jørn Utzon",year:1976,city:"Bagsværd",country:"Dinamarca",style:"Arquitectura moderna danesa",relevance:2,icon:"organico",lat:55.7642,lon:12.4553,desc:"Iglesia con un techo interior de hormigón ondulado que evoca nubes, obra del arquitecto de la Ópera de Sídney tras su regreso a Dinamarca."},
+{id:1311,name:"Amalienborg",architect:"Nicolai Eigtved",year:1760,city:"Copenhague",country:"Dinamarca",style:"Arquitectura rococó",relevance:2,icon:"monumental",lat:55.684,lon:12.5934,desc:"Conjunto de cuatro palacios rococó idénticos alrededor de una plaza octogonal, residencia de invierno de la familia real danesa."},
+{id:1312,name:"Palacio de Cristal (Porto)",architect:"Anónimo / reconstrucción de Fernandes de Sá",year:1956,city:"Oporto",country:"Portugal",style:"Arquitectura modernista",relevance:1,icon:"geometrico",lat:41.1503,lon:-8.6208,desc:"Pabellón deportivo de estructura geodésica sobre jardines con vistas al río Duero, en el lugar del antiguo palacio de hierro y cristal del siglo XIX."},
+{id:1313,name:"Jardín Majorelle",architect:"Jacques Majorelle",year:1931,city:"Marrakech",country:"Marruecos",style:"Arquitectura de jardín art déco",relevance:2,icon:"organico",lat:31.6417,lon:-8.0033,desc:"Jardín botánico con una villa de un intenso azul cobalto ('azul Majorelle'), restaurado por Yves Saint Laurent y Pierre Bergé."},
+{id:1314,name:"Gran Mezquita de los Omeyas",architect:"Anónimo (fábrica omeya)",year:715,city:"Damasco",country:"Siria",style:"Arquitectura islámica omeya",relevance:3,icon:"monumental",lat:33.5117,lon:36.3064,desc:"Una de las mezquitas más antiguas y sagradas del islam, construida sobre una antigua basílica de San Juan Bautista, con mosaicos dorados bizantinos."},
+{id:1315,name:"Ciudadela de Ammán",architect:"Anónimo (fábrica romana y omeya)",year:750,city:"Amán",country:"Jordania",style:"Arquitectura romana-omeya",relevance:1,icon:"monumental",lat:31.9552,lon:35.9347,desc:"Colina fortificada ocupada desde la Edad de Bronce, con restos del Templo de Hércules romano y un palacio omeya de planta cruciforme."},
+{id:1316,name:"Al-Khazneh (Petra)",architect:"Anónimo (civilización nabatea)",year:-100,city:"Petra",country:"Jordania",style:"Arquitectura nabatea",relevance:3,icon:"monumental",lat:30.3285,lon:35.4486,desc:"Fachada monumental tallada directamente en un acantilado de arenisca rosada, la estructura más célebre de la ciudad-tesoro nabatea de Petra."},
+{id:1317,name:"Monasterio de Petra (Ad Deir)",architect:"Anónimo (civilización nabatea)",year:-100,city:"Petra",country:"Jordania",style:"Arquitectura nabatea",relevance:2,icon:"monumental",lat:30.3378,lon:35.4364,desc:"El monumento excavado en roca más grande de Petra, con una fachada de casi 50 metros de altura accesible por 800 escalones tallados."},
+{id:1318,name:"Terminal 3 del Aeropuerto Ben Gurión",architect:"Moshe Safdie",year:2004,city:"Lod",country:"Israel",style:"Arquitectura contemporánea",relevance:1,icon:"geometrico",lat:32.0004,lon:34.8706,desc:"Terminal aeroportuaria organizada bajo una gran cúpula central con un jardín circular, referencia simbólica a Jerusalén en su geometría."},
+{id:1319,name:"Templo de Bel",architect:"Anónimo (civilización palmirena)",year:32,city:"Palmira",country:"Siria",style:"Arquitectura grecorromana-oriental",relevance:2,icon:"monumental",lat:34.5539,lon:38.2769,desc:"Templo monumental que fusionaba tradiciones arquitectónicas mesopotámicas y grecorromanas, gravemente dañado en 2015, símbolo de la Palmira histórica."},
+{id:1320,name:"Ciudad Universitaria de la UNAM",architect:"Mario Pani y otros",year:1954,city:"Ciudad de México",country:"México",style:"Arquitectura moderna mexicana",relevance:2,icon:"geometrico",lat:19.3324,lon:-99.1867,desc:"Campus universitario con el mural de Juan O'Gorman en la Biblioteca Central, Patrimonio de la Humanidad como conjunto de arte y arquitectura modernos."},
+{id:1321,name:"Templo Expiatorio de Guadalajara",architect:"Adamo Boari y Manuel Gómez",year:1972,city:"Guadalajara",country:"México",style:"Arquitectura neogótica",relevance:1,icon:"monumental",lat:20.6759,lon:-103.3453,desc:"Iglesia neogótica de casi un siglo de construcción, con un reloj mecánico que hace desfilar figuras de los apóstoles al mediodía."},
+{id:1322,name:"Hospicio Cabañas",architect:"Manuel Tolsá",year:1810,city:"Guadalajara",country:"México",style:"Arquitectura neoclásica",relevance:2,icon:"monumental",lat:20.6775,lon:-103.3319,desc:"Antiguo orfanato neoclásico con 23 patios, célebre por los murales de José Clemente Orozco en su capilla, Patrimonio de la Humanidad."},
+{id:1323,name:"Ciudad Blanca de Mérida (Catedral de San Ildefonso)",architect:"Anónimo (fábrica colonial)",year:1598,city:"Mérida",country:"México",style:"Arquitectura colonial",relevance:1,icon:"monumental",lat:20.9674,lon:-89.6237,desc:"La catedral más antigua de tierra firme americana, construida con piedra de templos mayas cercanos tras la conquista de la península de Yucatán."},
+{id:1324,name:"Palacio de Gobierno de Guanajuato",architect:"Anónimo (fábrica porfiriana)",year:1903,city:"Guanajuato",country:"México",style:"Arquitectura ecléctica porfiriana",relevance:1,icon:"monumental",lat:21.019,lon:-101.2574,desc:"Palacio estatal con un vitral central que narra la historia del estado, en el corazón de la ciudad minera colonial de Guanajuato."},
+{id:1325,name:"GAM (Centro Gabriela Mistral)",architect:"Cristián Fernández Arquitectos",year:2010,city:"Santiago",country:"Chile",style:"Arquitectura contemporánea",relevance:1,icon:"geometrico",lat:-33.4372,lon:-70.6383,desc:"Centro cultural con una fachada de vidrio translúcido retroiluminado, reconstruido sobre el antiguo edificio Diego Portales tras un incendio."},
+{id:1326,name:"Iglesia de Chiloé (San Francisco de Castro)",architect:"Anónimo (carpinteros de ribera chilotes)",year:1912,city:"Castro",country:"Chile",style:"Arquitectura de madera chilota",relevance:2,icon:"monumental",lat:-42.4827,lon:-73.7654,desc:"Iglesia de madera de tejamaní con fachada neogótica amarilla y morada, la más célebre de las iglesias de Chiloé, Patrimonio de la Humanidad."},
+{id:1327,name:"Torre Bicentenario Repsol-YPF",architect:"César Pelli",year:2015,city:"Buenos Aires",country:"Argentina",style:"Arquitectura contemporánea",relevance:1,icon:"geometrico",lat:-34.5822,lon:-58.4267,desc:"Torre corporativa de vidrio con una punta escalonada, una de las más altas de Buenos Aires, del arquitecto argentino-estadounidense César Pelli."},
+{id:1328,name:"Facultad de Derecho de Buenos Aires",architect:"Arturo Prins y León Dourge",year:1949,city:"Buenos Aires",country:"Argentina",style:"Arquitectura neoclásica",relevance:1,icon:"monumental",lat:-34.5827,lon:-58.3922,desc:"Edificio de imponente columnata neoclásica y amplia escalinata, sede de la facultad de derecho de la Universidad de Buenos Aires."},
+{id:1329,name:"Museo Nacional de Bellas Artes (Argentina)",architect:"Alejandro Christophersen",year:1933,city:"Buenos Aires",country:"Argentina",style:"Arquitectura ecléctica",relevance:1,icon:"monumental",lat:-34.5836,lon:-58.3931,desc:"Antigua casa de bombas de aguas corrientes reconvertida en el principal museo de bellas artes de Argentina."},
+{id:1330,name:"Museo Larco",architect:"Anónimo (hacienda colonial reconvertida)",year:1926,city:"Lima",country:"Perú",style:"Arquitectura colonial",relevance:1,icon:"monumental",lat:-12.0733,lon:-77.0658,desc:"Museo instalado en una casona virreinal del siglo XVIII construida sobre una pirámide preinca, con jardines de buganvillas."},
 ];
 
 /* ================= MAPA REAL (Leaflet + teselas de calles) ================= */
 const mapArea = document.getElementById('mapArea');
 const map = L.map('leafletMap', {
   zoomControl:false,
+  attributionControl:false,
   minZoom:2,
   maxZoom:19,
   worldCopyJump:true
 }).setView([30, 10], 3);
+/* La atribución de las teselas se coloca en la esquina superior derecha del
+   mapa (siempre libre en este diseño), en vez de la esquina inferior por
+   defecto: ahí, en pantallas estrechas, el texto largo del proveedor de
+   teselas terminaba tapando la leyenda de relevancia y el icono de ruta. */
+map.attributionControl = L.control.attribution({position:'topright', prefix:false}).addTo(map);
 
 /* ---------- TESELAS DEL MAPA, con varios proveedores de respaldo ----------
    Distintos servidores de teselas pueden fallar según la red (operador móvil,
@@ -2989,6 +3078,15 @@ function makeIcon(w, zoom, isSelected){
   const color = fav ? 'var(--fav)' : `var(--pin-${w.relevance})`;
   const border = visited ? '3px solid var(--visited)' : '1.4px solid #fbfbf9';
   const shadow = visited ? 'box-shadow:0 0 0 1px rgba(255,255,255,0.95), 0 1px 3px rgba(21,24,28,0.35);' : '';
+  /* Al seleccionar una obra en el mapa (y solo si la chincheta ya es lo
+     bastante grande para que se vea con claridad), aparece un pequeño "+"
+     dentro del círculo para añadirla a la ruta con un solo toque, sin tener
+     que abrir la ficha de detalle — mucho más rápido en móvil. */
+  const inRoute = routeStops.includes(w.id);
+  const showAddBtn = isSelected && size >= 20;
+  const addBtnHtml = showAddBtn
+    ? `<span class="pin-add-route${inRoute?' in-route':''}" data-work-id="${w.id}" style="font-size:${Math.round(size*0.42)}px;" title="${inRoute?'Quitar de la ruta':'Añadir a la ruta'}">${inRoute?'✓':'+'}</span>`
+    : '';
   return L.divIcon({
     className: '',
     html: `<div class="arch-pin${isSelected?' selected':''}" style="
@@ -2997,7 +3095,7 @@ function makeIcon(w, zoom, isSelected){
         opacity:var(--op-${w.relevance});
         border:${border};
         ${shadow}
-        border-radius:50%;"></div>`,
+        border-radius:50%;">${addBtnHtml}</div>`,
     iconSize:[size,size],
     iconAnchor:[size/2,size/2]
   });
@@ -3404,6 +3502,7 @@ function setRouteModeActive(active){
   routeModeActive = active;
   routeModeBtn.classList.toggle('active', active);
   routePanel.classList.toggle('show', active);
+  mapArea.classList.toggle('route-panel-open', active);
   renderList();
 }
 routeModeBtn.addEventListener('click', ()=> setRouteModeActive(!routeModeActive));
@@ -3511,7 +3610,25 @@ function toggleRouteStop(id){
     const btn = document.getElementById('detailAddRouteBtn');
     if(btn) btn.textContent = routeStops.includes(id) ? '✓ En la ruta (quitar)' : '+ Añadir a la ruta';
   }
+  // refresca el símbolo +/✓ dentro de la chincheta del mapa, si la tiene
+  if(markers[id]){
+    const w = ALL_WORKS.find(x=>x.id===id);
+    if(w) markers[id].setIcon(makeIcon(w, map.getZoom(), id===activeId));
+  }
 }
+
+/* Toque en el "+"/"✓" dentro de una chincheta seleccionada: añade o quita esa
+   obra de la ruta directamente, sin pasar por la ficha de detalle. Se usa un
+   listener delegado en fase de captura para interceptar el toque ANTES de que
+   llegue al propio marcador de Leaflet (que si no, también dispararía
+   selectWork y volvería a centrar/hacer zoom innecesariamente). */
+document.addEventListener('click', function(e){
+  const btn = e.target.closest && e.target.closest('.pin-add-route');
+  if(!btn) return;
+  e.stopPropagation();
+  e.preventDefault();
+  toggleRouteStop(btn.getAttribute('data-work-id'));
+}, true);
 
 function renderRoutePanel(){
   const gmapsBtn = document.getElementById('routeGmapsBtn');
