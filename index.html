@@ -1774,7 +1774,7 @@ svg.leaflet-zoom-animated{will-change:transform}
       <button class="modal-close" data-close="reportErrorOverlay">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint">Cuéntanos qué está mal en «<span id="reportWorkName"></span>» (ubicación, datos, foto, descripción...). Es un prototipo sin servidor: el reporte se guarda en este navegador, no se envía a nadie automáticamente.</p>
+      <p class="hint">Cuéntanos qué está mal en «<span id="reportWorkName"></span>» (ubicación, datos, foto, descripción...). El reporte queda registrado en la app.</p>
       <div class="field">
         <label>Descripción del error</label>
         <textarea id="reportErrorText" rows="4" placeholder="Ej. Las coordenadas están mal, el arquitecto no es correcto…"></textarea>
@@ -3410,10 +3410,11 @@ function toggleVisited(id){
 }
 
 /* ================= REPORTES DE ERROR =================
-   Prototipo sin servidor: los reportes se guardan en una lista local
-   (archmap_error_reports), con el nombre de la obra y, si hay sesión
-   iniciada, quién lo envió. No llegan a ningún sitio automáticamente;
-   es un registro local para no perder el aviso. */
+   Prototipo sin servidor: al enviar un reporte se guarda localmente
+   (archmap_error_reports) para que quede constancia del aviso dentro
+   de la propia app. Una página estática sin backend no puede enviar
+   un correo real de forma automática, así que este prototipo no lo
+   intenta: el reporte simplemente queda registrado aquí. */
 let reportingWork = null;
 function getErrorReports(){
   try{ return JSON.parse(localStorage.getItem('archmap_error_reports') || '[]'); }catch(e){ return []; }
@@ -3435,16 +3436,19 @@ document.getElementById('reportErrorSubmit').addEventListener('click', ()=>{
     return;
   }
   const user = getUser();
+  const reportedBy = user ? (user.name || user.email) : 'Anónimo';
+
   const reports = getErrorReports();
   reports.push({
     id: 'r' + Date.now() + Math.random().toString(36).slice(2,7),
     workId: reportingWork.id,
     workName: reportingWork.name,
     text,
-    reportedBy: user ? (user.name || user.email) : 'Anónimo',
+    reportedBy,
     reportedAt: Date.now()
   });
   saveErrorReports(reports);
+
   closeModal('reportErrorOverlay');
   toast('Gracias, hemos registrado tu reporte.');
 });
