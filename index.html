@@ -1751,20 +1751,24 @@ svg.leaflet-zoom-animated{will-change:transform}
 <div class="modal-overlay" id="loginOverlay">
   <div class="modal">
     <div class="modal-head">
-      <h3>Iniciar sesión</h3>
+      <h3 id="authModalTitle">Iniciar sesión</h3>
       <button class="modal-close" data-close="loginOverlay">✕</button>
     </div>
     <div class="modal-body">
-      <p class="hint">Cuenta local de demostración: tus datos se guardan solo en este navegador, no en un servidor. Sirve para identificar las obras que añadas al mapa.</p>
-      <div class="field">
+      <div class="route-mode-row" style="margin-bottom:14px;">
+        <button class="route-mode-btn active" id="authTabLogin" type="button">Iniciar sesión</button>
+        <button class="route-mode-btn" id="authTabRegister" type="button">Registrarte</button>
+      </div>
+      <p class="hint" id="authHint">Cuenta local de demostración: tus datos se guardan solo en este navegador, no en un servidor. Inicia sesión con el correo con el que te registraste.</p>
+      <div class="field" id="authNameField" style="display:none;">
         <label>Nombre</label>
         <input type="text" id="loginName" placeholder="Ej. Marta Ruiz">
       </div>
       <div class="field">
-        <label>Correo (opcional)</label>
+        <label>Correo electrónico</label>
         <input type="email" id="loginEmail" placeholder="marta@escuela.edu">
       </div>
-      <div class="form-error" id="loginError">Escribe al menos tu nombre para continuar.</div>
+      <div class="form-error" id="loginError"></div>
       <div class="modal-actions">
         <button class="btn" data-close="loginOverlay">Cancelar</button>
         <button class="btn primary" id="loginSubmit">Entrar</button>
@@ -3208,6 +3212,35 @@ const WORKS = [
 {id:1360,name:"Muralla de Benín (referencia histórica)",architect:"Reino de Benín",year:1200,city:"Benin City",country:"Nigeria",style:"Arquitectura africana precolonial",relevance:1,icon:"geometrico",lat:6.335,lon:5.6037,desc:"Antiguo sistema de murallas y fosos que rodeó la capital del reino de Benín, uno de los mayores movimientos de tierra prehistóricos del mundo."},
 {id:1361,name:"Torre de las Naciones (Kwame Nkrumah Mausoleum)",architect:"Don Arthur y Krokow",year:1992,city:"Accra",country:"Ghana",style:"Arquitectura conmemorativa postcolonial",relevance:1,icon:"geometrico",lat:5.5445,lon:-0.199,desc:"Mausoleo de mármol dedicado al primer presidente de Ghana, con una forma que evoca una espada invertida clavada en el suelo."},
 {id:1362,name:"Instituto Mundial del Boabab (Eco-Museo de Sine)",architect:"Anónimo",year:2013,city:"Fadiouth",country:"Senegal",style:"Arquitectura vernácula contemporánea",relevance:1,icon:"organico",lat:14.15,lon:-16.85,desc:"Museo comunitario construido con técnicas tradicionales de tierra y fibra vegetal, integrado en un poblado de conchas junto al delta del Sine-Saloum."},
+{id:1363,name:"Mausoleo de Samani",architect:"Dinastía samánida",year:943,city:"Bujará",country:"Uzbekistán",style:"Arquitectura samánida",relevance:2,icon:"geometrico",lat:39.7859,lon:64.4139,desc:"Uno de los monumentos funerarios islámicos más antiguos de Asia Central, con un ingenioso ladrillo visto tejido en patrones geométricos por las cuatro caras."},
+{id:1364,name:"Torre Kalián",architect:"Arslan Khan",year:1127,city:"Bujará",country:"Uzbekistán",style:"Arquitectura karajánida",relevance:2,icon:"geometrico",lat:39.7747,lon:64.4138,desc:"Minarete de ladrillo de 46 m que sirvió de faro para las caravanas de la Ruta de la Seda, respetado incluso por Gengis Kan según la leyenda."},
+{id:1365,name:"Puerta de Asia Central (Ashgabat)",architect:"Anónimo",year:1998,city:"Asjabad",country:"Turkmenistán",style:"Arquitectura monumental de mármol blanco",relevance:1,icon:"monumental",lat:37.95,lon:58.3833,desc:"Capital célebre por su profusión de edificios revestidos de mármol blanco; este arco monumental corona el perfil urbano con motivos dorados."},
+{id:1366,name:"Torre Burana",architect:"Imperio karajánida",year:950,city:"Valle de Chuy",country:"Kirguistán",style:"Arquitectura karajánida",relevance:1,icon:"geometrico",lat:42.7881,lon:75.2522,desc:"Minarete en ruinas, resto de una antigua ciudad de la Ruta de la Seda, con petroglifos y balbales (estelas de piedra) dispersos a su alrededor."},
+{id:1367,name:"Catedral de la Santísima Trinidad de Tiflis (Sameba)",architect:"Arquitectos georgianos contemporáneos",year:2004,city:"Tiflis",country:"Georgia",style:"Arquitectura religiosa ortodoxa contemporánea",relevance:2,icon:"monumental",lat:41.6965,lon:44.8181,desc:"La catedral ortodoxa más alta de Georgia, construida para celebrar 1500 años de la Iglesia georgiana, dominando el perfil de Tiflis."},
+{id:1368,name:"Monasterio de Gueghard",architect:"Anónimo (fábrica armenia medieval)",year:1215,city:"Garni",country:"Armenia",style:"Arquitectura religiosa armenia excavada en roca",relevance:2,icon:"monumental",lat:40.1356,lon:44.8203,desc:"Complejo monástico parcialmente excavado en un acantilado rocoso, con cámaras talladas directamente en la montaña, Patrimonio de la Humanidad."},
+{id:1369,name:"Templo de Garni",architect:"Rey Trdates I",year:76,city:"Garni",country:"Armenia",style:"Arquitectura helenística armenia",relevance:1,icon:"geometrico",lat:40.1142,lon:44.7303,desc:"Único templo grecorromano superviviente en el Cáucaso, de columnas jónicas, reconstruido en el siglo XX tras un terremoto."},
+{id:1370,name:"Shibam, la 'Manhattan del desierto'",architect:"Anónimo (comunidad hadramí)",year:1532,city:"Shibam",country:"Yemen",style:"Arquitectura vernácula de adobe en altura",relevance:3,icon:"geometrico",lat:15.9262,lon:48.6333,desc:"Ciudad amurallada de más de 500 torres de adobe de hasta 11 plantas, uno de los primeros ejemplos de planificación urbana vertical del mundo."},
+{id:1371,name:"Gran Mezquita del Sultán Qaboos",architect:"Quad Design (consultores)",year:2001,city:"Mascate",country:"Omán",style:"Arquitectura religiosa islámica contemporánea",relevance:2,icon:"monumental",lat:23.5582,lon:58.4876,desc:"Mezquita de mármol con la mayor alfombra persa tejida en una sola pieza en su día y una lámpara de araña de cristal Swarovski de 14 m."},
+{id:1372,name:"Torres del Bahréin del Comercio Mundial",architect:"Atkins",year:2008,city:"Manama",country:"Baréin",style:"Arquitectura contemporánea sostenible",relevance:1,icon:"geometrico",lat:26.2389,lon:50.5861,desc:"Primer rascacielos del mundo en integrar turbinas eólicas a gran escala entre sus dos torres, aprovechando la brisa marina del Golfo."},
+{id:1373,name:"Torres Al Hamra",architect:"SOM / AMBS",year:2011,city:"Kuwait",country:"Kuwait",style:"Arquitectura contemporánea escultórica",relevance:1,icon:"geometrico",lat:29.3783,lon:47.9937,desc:"Rascacielos de hormigón con una fachada curva de paneles que giran en espiral para minimizar la radiación solar directa en el desierto."},
+{id:1374,name:"Mohenjo-Daro",architect:"Civilización del valle del Indo",year:-2500,city:"Larkana",country:"Pakistán",style:"Arquitectura urbana de la Edad del Bronce",relevance:2,icon:"geometrico",lat:27.3294,lon:68.1358,desc:"Una de las ciudades planificadas más antiguas del mundo, con calles en cuadrícula y un sofisticado sistema de alcantarillado cinco mil años anterior."},
+{id:1375,name:"Templo de Pashupatinath",architect:"Dinastía Licchavi (origen)",year:400,city:"Katmandú",country:"Nepal",style:"Arquitectura religiosa hinduista nepalí",relevance:2,icon:"monumental",lat:27.7106,lon:85.3486,desc:"El templo hinduista más sagrado de Nepal dedicado a Shiva, con tejados pagoda de cobre dorado a orillas del río Bagmati."},
+{id:1376,name:"Mezquitas de barro de Tombuctú (Djingareyber)",architect:"Imam Al Saheli",year:1327,city:"Tombuctú",country:"Mali",style:"Arquitectura sudanesa de adobe",relevance:2,icon:"organico",lat:16.7735,lon:-3.0086,desc:"Mezquita de barro construida por orden del emperador Mansa Musa tras su peregrinación a La Meca, corazón de la antigua ciudad erudita del Sahel."},
+{id:1377,name:"Dunas y arquitectura vernácula del pueblo himba",architect:"Comunidad himba",year:1900,city:"Kaokoland",country:"Namibia",style:"Arquitectura vernácula africana",relevance:1,icon:"organico",lat:-18.49,lon:13.52,desc:"Cabañas cónicas de barro, estiércol y ceniza construidas por el pueblo himba, adaptadas al clima extremo del desierto de Kaokoland."},
+{id:1378,name:"Palacio de la Reina de Madagascar (Rova de Antananarivo)",architect:"Jean Laborde",year:1839,city:"Antananarivo",country:"Madagascar",style:"Arquitectura real malgache",relevance:1,icon:"monumental",lat:-18.9273,lon:47.5338,desc:"Antiguo palacio real de los soberanos merina, reconstruido tras un incendio, mezcla de tradición malgache y aportes europeos del siglo XIX."},
+{id:1379,name:"Edificio de la Prefectura de Kagawa",architect:"Kenzo Tange",year:1958,city:"Takamatsu",country:"Japón",style:"Metabolismo japonés temprano",relevance:1,icon:"geometrico",lat:34.3428,lon:134.0466,desc:"Obra pionera de Kenzo Tange que reinterpreta la carpintería tradicional japonesa en hormigón armado, germen del movimiento metabolista."},
+{id:1380,name:"Niterói, Museo de Arte Contemporáneo",architect:"Oscar Niemeyer",year:1996,city:"Niterói",country:"Brasil",style:"Arquitectura moderna brasileña",relevance:3,icon:"curvo",lat:-22.9192,lon:-43.1033,desc:"Platillo de hormigón suspendido sobre un espejo de agua frente a la bahía de Guanabara, una de las últimas obras maestras de Niemeyer."},
+{id:1381,name:"Biblioteca de São Paulo (Biblioteca Mário de Andrade, referencia modernista)",architect:"Jacques Pilon",year:1942,city:"São Paulo",country:"Brasil",style:"Arquitectura moderna brasileña temprana",relevance:1,icon:"geometrico",lat:-23.5431,lon:-46.6362,desc:"Biblioteca pública de estilo art déco tardío, una de las mayores colecciones bibliográficas de Brasil en pleno centro histórico paulista."},
+{id:1382,name:"Uluru y el Centro Cultural Anangu",architect:"Pueblo anangu / Gregory Burgess",year:1995,city:"Parque Nacional Uluru-Kata Tjuta",country:"Australia",style:"Arquitectura vernácula aborigen contemporánea",relevance:2,icon:"organico",lat:-25.3444,lon:131.0369,desc:"Centro cultural de planta serpenteante inspirada en los relatos ancestrales aborígenes, junto al monolito sagrado de Uluru."},
+{id:1383,name:"Marae de Waitangi",architect:"Pueblo maorí",year:1940,city:"Waitangi",country:"Nueva Zelanda",style:"Arquitectura vernácula maorí",relevance:2,icon:"organico",lat:-35.263,lon:174.0813,desc:"Casa de reuniones maorí tallada con motivos ancestrales, erigida para conmemorar el centenario del Tratado de Waitangi."},
+{id:1384,name:"Templo de Bahá'í de Samoa",architect:"Hossein Amanat",year:1984,city:"Apia",country:"Samoa",style:"Arquitectura religiosa bahá'í",relevance:1,icon:"curvo",lat:-13.8166,lon:-171.7681,desc:"Uno de los templos bahá'ís continentales, de cúpula blanca, construido para servir a la pequeña comunidad del Pacífico Sur."},
+{id:1385,name:"Casa Haus Tambaran (casa de espíritus)",architect:"Comunidad del río Sepik",year:1900,city:"Río Sepik",country:"Papúa Nueva Guinea",style:"Arquitectura vernácula melanesia",relevance:1,icon:"organico",lat:-4.1833,lon:143.45,desc:"Casa ceremonial de techo altísimo y fachada tallada con espíritus ancestrales, centro ritual de las aldeas del río Sepik."},
+{id:1386,name:"Fiale (casas de piedra) de los altiplanos de Fiyi",architect:"Comunidad fiyiana",year:1850,city:"Levuka",country:"Fiyi",style:"Arquitectura vernácula del Pacífico",relevance:1,icon:"organico",lat:-17.6819,lon:178.8339,desc:"Antiguas viviendas comunales de madera y hoja de pándano de la primera capital colonial de Fiyi, Patrimonio de la Humanidad."},
+{id:1387,name:"Concatedral de San Juan de La Valeta",architect:"Gerolamo Cassar",year:1577,city:"La Valeta",country:"Malta",style:"Arquitectura barroca de los Caballeros de Malta",relevance:2,icon:"monumental",lat:35.8986,lon:14.5131,desc:"Catedral de fachada austera y un interior barroco deslumbrante, con un suelo formado por las lápidas de mármol de cientos de caballeros."},
+{id:1388,name:"Monasterio de Kykkos",architect:"Emperador Alejo I Comneno",year:1100,city:"Montes Troodos",country:"Chipre",style:"Arquitectura religiosa bizantina chipriota",relevance:1,icon:"monumental",lat:34.9867,lon:32.7392,desc:"El monasterio más rico de Chipre, reconstruido varias veces tras incendios, alberga un icono de la Virgen atribuido a san Lucas."},
+{id:1389,name:"Castillo de Quebec (Château Frontenac)",architect:"Bruce Price",year:1893,city:"Ciudad de Quebec",country:"Canadá",style:"Arquitectura de 'castillo ferroviario'",relevance:2,icon:"monumental",lat:46.8108,lon:-71.2039,desc:"Hotel construido por el Canadian Pacific Railway al estilo castillo francés, el edificio más fotografiado de Canadá sobre el río San Lorenzo."},
+{id:1390,name:"Palacio de Hielo de Harbin (festival anual)",architect:"Artesanos del hielo de Harbin",year:1985,city:"Harbin",country:"China",style:"Arquitectura efímera de hielo",relevance:1,icon:"geometrico",lat:45.7732,lon:126.6424,desc:"Cada invierno se erige una ciudad entera de bloques de hielo iluminados con luces de colores, el mayor festival de escultura en hielo del mundo."},
+{id:1391,name:"Torres de Dubái Marina (Cayan Tower)",architect:"Skidmore, Owings & Merrill",year:2013,city:"Dubái",country:"Emiratos Árabes Unidos",style:"Arquitectura contemporánea escultórica",relevance:1,icon:"geometrico",lat:25.0783,lon:55.1403,desc:"Rascacielos residencial que gira 90 grados a lo largo de su altura, uno de los edificios torsionados más pronunciados del mundo."},
 ];
 
 /* ================= MAPA REAL (Leaflet + teselas de calles) ================= */
@@ -3385,6 +3418,22 @@ function getUser(){
 }
 function setUser(u){ localStorage.setItem('archmap_user', JSON.stringify(u)); }
 function clearUser(){ localStorage.removeItem('archmap_user'); }
+
+/* ---- Registro de cuentas ----
+   Además de "quién ha iniciado sesión ahora" (archmap_user, de arriba), se
+   guarda por separado el registro de cuentas creadas (archmap_accounts),
+   indexado por correo en minúsculas. Así una cuenta persiste aunque se
+   cierre sesión, y solo se puede "iniciar sesión" con un correo que ya
+   exista en ese registro. */
+function getAccounts(){
+  try{ return JSON.parse(localStorage.getItem('archmap_accounts') || '{}'); }catch(e){ return {}; }
+}
+function saveAccounts(accounts){ localStorage.setItem('archmap_accounts', JSON.stringify(accounts)); }
+function isValidEmail(email){
+  // formato razonable de correo real: algo@algo.dominio — no se puede verificar
+  // que exista de verdad sin servidor, pero sí exigir una forma válida.
+  return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email);
+}
 function getUserWorks(){
   try{ return JSON.parse(localStorage.getItem('archmap_user_works') || '[]'); }catch(e){ return []; }
 }
@@ -4660,21 +4709,75 @@ function refreshAccountUI(){
 }
 refreshAccountUI();
 
+/* ================= ENTRAR / REGISTRARSE (pestañas dentro del mismo modal) ================= */
+const authTabLogin = document.getElementById('authTabLogin');
+const authTabRegister = document.getElementById('authTabRegister');
+const authNameField = document.getElementById('authNameField');
+const authHint = document.getElementById('authHint');
+const authModalTitle = document.getElementById('authModalTitle');
+const loginErrorEl = document.getElementById('loginError');
+const loginSubmitBtn = document.getElementById('loginSubmit');
+let authMode = 'login';
+
+function setAuthMode(mode){
+  authMode = mode;
+  authTabLogin.classList.toggle('active', mode === 'login');
+  authTabRegister.classList.toggle('active', mode === 'register');
+  authNameField.style.display = mode === 'register' ? 'block' : 'none';
+  authModalTitle.textContent = mode === 'register' ? 'Crear cuenta' : 'Iniciar sesión';
+  loginSubmitBtn.textContent = mode === 'register' ? 'Crear cuenta' : 'Entrar';
+  authHint.textContent = mode === 'register'
+    ? 'Cuenta local de demostración: se guarda solo en este navegador, no en un servidor. Usa un correo real: lo necesitarás para volver a iniciar sesión más adelante.'
+    : 'Cuenta local de demostración: tus datos se guardan solo en este navegador. Inicia sesión con el correo con el que te registraste.';
+  loginErrorEl.style.display = 'none';
+}
+authTabLogin.addEventListener('click', ()=> setAuthMode('login'));
+authTabRegister.addEventListener('click', ()=> setAuthMode('register'));
+
 loginBtn.addEventListener('click', ()=>{
-  document.getElementById('loginError').style.display = 'none';
   document.getElementById('loginName').value = '';
   document.getElementById('loginEmail').value = '';
+  setAuthMode('login');
   openModal('loginOverlay');
 });
 
+function showAuthError(msg){
+  loginErrorEl.textContent = msg;
+  loginErrorEl.style.display = 'block';
+}
+
 document.getElementById('loginSubmit').addEventListener('click', ()=>{
   const name = document.getElementById('loginName').value.trim();
-  const email = document.getElementById('loginEmail').value.trim();
-  if(!name){
-    document.getElementById('loginError').style.display = 'block';
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+
+  if(!isValidEmail(email)){
+    showAuthError('Escribe un correo electrónico válido (ej. nombre@dominio.com).');
     return;
   }
-  setUser({name, email});
+
+  const accounts = getAccounts();
+
+  if(authMode === 'register'){
+    if(!name){
+      showAuthError('Escribe tu nombre para registrarte.');
+      return;
+    }
+    if(accounts[email]){
+      showAuthError('Ya existe una cuenta con ese correo. Inicia sesión en su lugar.');
+      return;
+    }
+    accounts[email] = {name, email};
+    saveAccounts(accounts);
+    setUser({name, email});
+  } else {
+    const account = accounts[email];
+    if(!account){
+      showAuthError('No existe ninguna cuenta con ese correo. Regístrate primero.');
+      return;
+    }
+    setUser({name: account.name, email: account.email});
+  }
+
   refreshAccountUI();
   closeModal('loginOverlay');
 });
