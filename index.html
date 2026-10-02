@@ -773,6 +773,24 @@ svg.leaflet-zoom-animated{will-change:transform}
     color:var(--ink);
   }
 
+  /* ---------- REPORTAR ERROR (botón discreto) ---------- */
+  .report-error-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    margin-top:10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:.02em;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    padding:2px 0;
+    cursor:pointer;
+    text-decoration:none;
+  }
+  .report-error-btn:hover{ color:var(--ink); text-decoration:underline; }
+
   /* ---------- GALERÍA DE FOTOS DE USUARIOS ---------- */
   .gallery-section{
     margin-top:20px;
@@ -1640,13 +1658,14 @@ svg.leaflet-zoom-animated{will-change:transform}
           <div class="award-badge" id="dAwardBadge" style="display:none;">🏆 <span id="dAwardText"></span></div>
           <div class="detail-desc" id="dDesc"></div>
           <button class="route-clear-btn" id="detailAddRouteBtn" type="button" style="margin:12px 0 0; width:100%;">+ Añadir a la ruta</button>
+          <button class="report-error-btn" id="reportErrorBtn" type="button">⚑ Reportar error en esta obra</button>
 
           <div class="gallery-section">
             <div class="gallery-header">
-              <span class="gallery-title">Fotos de la comunidad</span>
+              <span class="gallery-title">Mis fotos de esta obra</span>
               <button class="gallery-add-btn" id="galleryAddBtn" type="button">+ Añadir foto</button>
             </div>
-            <p class="gallery-hint" id="galleryHint" style="display:none;">Inicia sesión para añadir tus propias fotos de esta obra.</p>
+            <p class="gallery-hint" id="galleryHint" style="display:none;">Inicia sesión para guardar tus propias fotos de esta obra. Solo tú podrás verlas, iniciando sesión en tu cuenta.</p>
             <div class="gallery-grid" id="galleryGrid"></div>
             <input type="file" id="galleryFileInput" accept="image/*" multiple style="display:none;">
           </div>
@@ -1743,6 +1762,27 @@ svg.leaflet-zoom-animated{will-change:transform}
       <div class="modal-actions">
         <button class="btn" data-close="saveRouteOverlay">Cancelar</button>
         <button class="btn primary" id="saveRouteSubmit">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="reportErrorOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Reportar un error</h3>
+      <button class="modal-close" data-close="reportErrorOverlay">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint">Cuéntanos qué está mal en «<span id="reportWorkName"></span>» (ubicación, datos, foto, descripción...). Es un prototipo sin servidor: el reporte se guarda en este navegador, no se envía a nadie automáticamente.</p>
+      <div class="field">
+        <label>Descripción del error</label>
+        <textarea id="reportErrorText" rows="4" placeholder="Ej. Las coordenadas están mal, el arquitecto no es correcto…"></textarea>
+      </div>
+      <div class="form-error" id="reportErrorFormError">Escribe una breve descripción del error.</div>
+      <div class="modal-actions">
+        <button class="btn" data-close="reportErrorOverlay">Cancelar</button>
+        <button class="btn primary" id="reportErrorSubmit">Enviar reporte</button>
       </div>
     </div>
   </div>
@@ -2352,7 +2392,7 @@ const WORKS = [
 {id:506,name:"Caja Granada",architect:"Alberto Campo Baeza",year:2001,city:"Granada",country:"España",style:"Minimalismo mediterráneo",relevance:2,icon:"geometrico",lat:37.1988,lon:-3.6267,desc:"Cubo de piedra dorada elevado sobre un zócalo excavado, con un gran óculo cenital que ilumina el vacío central."},
 {id:507,name:"Casa del Infinito",architect:"Alberto Campo Baeza",year:2014,city:"Cádiz",country:"España",style:"Minimalismo mediterráneo",relevance:1,icon:"geometrico",lat:36.5164,lon:-6.2989,desc:"Losa horizontal suspendida frente al océano que reduce la arquitectura a su expresión más esencial: horizonte y luz."},
 {id:508,name:"Edificio Mirador",architect:"MVRDV y Blanca Lleó",year:2005,city:"Madrid",country:"España",style:"Contemporáneo experimental",relevance:2,icon:"geometrico",lat:40.4649,lon:-3.6236,desc:"Bloque de vivienda social con un hueco monumental a media altura que enmarca las vistas de la sierra de Madrid."},
-{id:509,name:"Museo Universidad de Navarra",architect:"Rafael Moneo",year:2015,city:"Pamplona",country:"España",style:"Contemporáneo",relevance:1,icon:"geometrico",lat:42.7998,lon:-1.6295,desc:"Museo de arte contemporáneo con una fachada de ladrillo perforado que filtra la luz sobre las salas de exposición."},
+{id:509,name:"Museo Universidad de Navarra",architect:"Rafael Moneo",year:2015,city:"Pamplona",country:"España",style:"Contemporáneo",relevance:1,icon:"geometrico",lat:42.8046,lon:-1.6644,desc:"Museo de arte contemporáneo con una fachada de ladrillo perforado que filtra la luz sobre las salas de exposición."},
 {id:511,name:"Universidad Católica de Chile (campus San Joaquín)",architect:"Various (incl. Alejandro Aravena)",year:2004,city:"Santiago",country:"Chile",style:"Contemporáneo",relevance:1,icon:"geometrico",lat:-33.4986,lon:-70.6118,desc:"Edificio de innovación docente que integra pasarelas y patios interiores como extensión de las aulas."},
 {id:512,name:"Faro de Colonia del Sacramento",architect:"Constructores coloniales portugueses",year:1857,city:"Colonia del Sacramento",country:"Uruguay",style:"Arquitectura colonial portuguesa",relevance:1,icon:"monumental",lat:-34.47286,lon:-57.85233,desc:"Faro erigido sobre las ruinas de un antiguo convento, en el casco histórico portugués mejor conservado de Uruguay."},
 {id:513,name:"Catedral anglicana de Zanzíbar (Christ Church)",architect:"Edward Steere",year:1879,city:"Zanzíbar",country:"Tanzania",style:"Neogótico colonial",relevance:1,icon:"monumental",lat:-6.1633,lon:39.1875,desc:"Construida sobre el antiguo mercado de esclavos de Zanzíbar como monumento contra la esclavitud."},
@@ -2520,14 +2560,14 @@ const WORKS = [
 {id:680,name:"Torre Hassan",architect:"Abu Yusuf Yaqub al-Mansur",year:1195,city:"Rabat",country:"Marruecos",style:"Arquitectura almohade",relevance:1,icon:"monumental",lat:34.0247,lon:-6.8228,desc:"Minarete inacabado que iba a coronar la mayor mezquita del mundo islámico occidental, símbolo de Rabat."},
 {id:681,name:"Mausoleo de Mohammed V",architect:"Vo Toan",year:1971,city:"Rabat",country:"Marruecos",style:"Arquitectura tradicional marroquí",relevance:1,icon:"monumental",lat:34.0233,lon:-6.8231,desc:"Mausoleo de mármol blanco decorado con azulejos y yeserías tradicionales, frente a la Torre Hassan."},
 {id:682,name:"Parlamento de Fiyi",architect:"Arquitectos coloniales y locales",year:1992,city:"Suva",country:"Fiyi",style:"Arquitectura tradicional oceánica adaptada",relevance:1,icon:"monumental",lat:-18.14586,lon:178.42441,desc:"Edificio inspirado en la forma de las casas tradicionales bure fiyianas, con un gran tejado a dos aguas."},
-{id:683,name:"Catedral de Santa María la Real de Pamplona",architect:"Charles Mory (fachada); anónimo (fábrica gótica)",year:1394,city:"Pamplona",country:"España",style:"Gótico / Neoclásico",relevance:4,icon:"monumental",lat:42.8194,lon:-1.6417,desc:"Catedral gótica del siglo XIV con un célebre claustro gótico y una fachada neoclásica del siglo XVIII añadida por Ventura Rodríguez, que sustituyó la portada medieval original."},
-{id:684,name:"Ciudadela de Pamplona",architect:"Jacobo Palear Fratín",year:1571,city:"Pamplona",country:"España",style:"Arquitectura militar renacentista",relevance:4,icon:"geometrico",lat:42.8093,lon:-1.6469,desc:"Fortaleza abaluartada de planta pentagonal construida bajo Felipe II, hoy convertida en parque público y espacio cultural, ejemplo destacado de arquitectura militar renacentista en España."},
-{id:685,name:"Palacio de Navarra",architect:"Silvestre Pérez / José de Nagusia",year:1847,city:"Pamplona",country:"España",style:"Neoclásico",relevance:2,icon:"monumental",lat:42.8163,lon:-1.6425,desc:"Sede del Gobierno de Navarra, edificio neoclásico con una destacada fachada decimonónica, situado junto a los jardines de la Taconera."},
-{id:686,name:"Planetario de Pamplona",architect:"Francisco Javier Sáenz de Oíza",year:1993,city:"Pamplona",country:"España",style:"Arquitectura moderna",relevance:2,icon:"geometrico",lat:42.83,lon:-1.639,desc:"Obra tardía de Sáenz de Oíza, arquitecto navarro, con una característica cubierta piramidal escalonada que alberga la sala de proyecciones."},
+{id:683,name:"Catedral de Santa María la Real de Pamplona",architect:"Charles Mory (fachada); anónimo (fábrica gótica)",year:1394,city:"Pamplona",country:"España",style:"Gótico / Neoclásico",relevance:4,icon:"monumental",lat:42.8197,lon:-1.6411,desc:"Catedral gótica del siglo XIV con un célebre claustro gótico y una fachada neoclásica del siglo XVIII añadida por Ventura Rodríguez, que sustituyó la portada medieval original."},
+{id:684,name:"Ciudadela de Pamplona",architect:"Jacobo Palear Fratín",year:1571,city:"Pamplona",country:"España",style:"Arquitectura militar renacentista",relevance:4,icon:"geometrico",lat:42.81188,lon:-1.6496,desc:"Fortaleza abaluartada de planta pentagonal construida bajo Felipe II, hoy convertida en parque público y espacio cultural, ejemplo destacado de arquitectura militar renacentista en España."},
+{id:685,name:"Palacio de Navarra",architect:"Silvestre Pérez / José de Nagusia",year:1847,city:"Pamplona",country:"España",style:"Neoclásico",relevance:2,icon:"monumental",lat:42.81595,lon:-1.6428,desc:"Sede del Gobierno de Navarra, edificio neoclásico con una destacada fachada decimonónica, situado junto a los jardines de la Taconera."},
+{id:686,name:"Planetario de Pamplona",architect:"Francisco Javier Sáenz de Oíza",year:1993,city:"Pamplona",country:"España",style:"Arquitectura moderna",relevance:2,icon:"geometrico",lat:42.80958,lon:-1.66447,desc:"Obra tardía de Sáenz de Oíza, arquitecto navarro, con una característica cubierta piramidal escalonada que alberga la sala de proyecciones."},
 {id:687,name:"Baluarte - Palacio de Congresos y Auditorio de Navarra",architect:"Francisco Mangado",year:2003,city:"Pamplona",country:"España",style:"Arquitectura contemporánea",relevance:3,icon:"geometrico",lat:42.8175,lon:-1.6445,desc:"Palacio de congresos y auditorio revestido en piedra de Aran, obra emblemática del arquitecto navarro Francisco Mangado que reactivó el extremo norte del casco antiguo."},
 {id:688,name:"Archivo Real y General de Navarra",architect:"Rafael Moneo",year:2003,city:"Pamplona",country:"España",style:"Arquitectura contemporánea",relevance:3,icon:"geometrico",lat:42.8181,lon:-1.643,desc:"Rehabilitación y ampliación del antiguo Palacio de los Reyes de Navarra por Rafael Moneo, integrando un volumen acristalado contemporáneo junto a los muros medievales."},
 {id:689,name:"Iglesia de San Saturnino de Pamplona",architect:"Anónimo (fábrica medieval)",year:1230,city:"Pamplona",country:"España",style:"Gótico",relevance:2,icon:"monumental",lat:42.8177,lon:-1.644,desc:"Iglesia gótica fortificada del casco viejo, con dos torres defensivas, dedicada al patrón de Pamplona y vinculada a la tradición del Camino de Santiago."},
-{id:690,name:"Universidad de Navarra - Edificio Central",architect:"César Ortiz-Echagüe / Rafael Aburto",year:1960,city:"Pamplona",country:"España",style:"Arquitectura moderna",relevance:1,icon:"geometrico",lat:42.7994,lon:-1.6247,desc:"Edificio principal del campus de la Universidad de Navarra, ejemplo de arquitectura académica moderna española de mediados del siglo XX."},
+{id:690,name:"Universidad de Navarra - Edificio Central",architect:"César Ortiz-Echagüe / Rafael Aburto",year:1960,city:"Pamplona",country:"España",style:"Arquitectura moderna",relevance:1,icon:"geometrico",lat:42.8042,lon:-1.6649,desc:"Edificio principal del campus de la Universidad de Navarra, ejemplo de arquitectura académica moderna española de mediados del siglo XX."},
 {id:691,name:"Museo Guggenheim Helsinki (propuesta)",architect:"Moreau Kusunoki Architectes",year:2015,city:"Helsinki",country:"Finlandia",style:"Arquitectura contemporánea",relevance:1,icon:"organico",lat:60.165,lon:24.95,desc:"Propuesta ganadora del concurso internacional para un museo Guggenheim en Helsinki, finalmente no construida, concebida como un conjunto de pabellones de madera junto al mar."},
 {id:692,name:"Museo de Bellas Artes de Bilbao",architect:"Gaspar Ochoa de Retana / Luis Vallejo (ampliación)",year:1945,city:"Bilbao",country:"España",style:"Ecléctico / Moderno",relevance:1,icon:"monumental",lat:43.266,lon:-2.9378,desc:"Museo con una importante colección de arte vasco y europeo, alojado en un edificio que combina un cuerpo clásico con una ampliación moderna."},
 {id:693,name:"Azkuna Zentroa (Alhóndiga Bilbao)",architect:"Philippe Starck (rehabilitación)",year:2010,city:"Bilbao",country:"España",style:"Rehabilitación contemporánea",relevance:2,icon:"geometrico",lat:43.25972,lon:-2.93694,desc:"Antigua bodega-almacén de vinos transformada en centro cultural y de ocio, con 43 columnas interiores de diseño único obra de Philippe Starck."},
@@ -2680,7 +2720,7 @@ const WORKS = [
 {id:856,name:"Estadio de San Mamés",architect:"IDOM / César Azcárate",year:2013,city:"Bilbao",country:"España",style:"Arquitectura deportiva contemporánea",relevance:1,icon:"geometrico",lat:43.2641,lon:-2.9496,desc:"Estadio de fútbol con una fachada corrugada de aluminio dorado que rinde homenaje al viejo San Mamés, 'la Catedral' del fútbol bilbaíno."},
 {id:857,name:"Universidad de Salamanca (fachada plateresca)",architect:"Anónimo (fábrica plateresca)",year:1529,city:"Salamanca",country:"España",style:"Plateresco",relevance:4,icon:"monumental",lat:40.9612,lon:-5.6717,desc:"Fachada plateresca considerada la obra cumbre de ese estilo en España, célebre por el juego de encontrar la rana oculta entre sus relieves."},
 {id:858,name:"Alcázar de Segovia",architect:"Anónimo (fábrica medieval)",year:1122,city:"Segovia",country:"España",style:"Arquitectura militar medieval",relevance:4,icon:"monumental",lat:40.9525,lon:-4.1325,desc:"Castillo con silueta de proa de barco que se dice inspiró el castillo de la Cenicienta de Disney, residencia real medieval y hoy museo."},
-{id:859,name:"Plaza de España de Sevilla",architect:"Aníbal González",year:1928,city:"Sevilla",country:"España",style:"Arquitectura regionalista",relevance:4,icon:"monumental",lat:37.3773,lon:-4.9702,desc:"Semicírculo monumental de ladrillo y azulejo construido para la Exposición Iberoamericana de 1929, con bancos que representan cada provincia española."},
+{id:859,name:"Plaza de España de Sevilla",architect:"Aníbal González",year:1928,city:"Sevilla",country:"España",style:"Arquitectura regionalista",relevance:4,icon:"monumental",lat:37.37726,lon:-5.9866,desc:"Semicírculo monumental de ladrillo y azulejo construido para la Exposición Iberoamericana de 1929, con bancos que representan cada provincia española."},
 {id:860,name:"Cuevas de Nerja",architect:"Anónimo (formación natural)",year:-25000,city:"Nerja",country:"España",style:"Arquitectura natural prehistórica",relevance:1,icon:"organico",lat:36.7649,lon:-3.8486,desc:"Sistema de cuevas kársticas con pinturas rupestres paleolíticas, hoy adaptadas como espacio cultural y auditorio natural."},
 {id:861,name:"Bradbury Building",architect:"George Wyman",year:1893,city:"Los Ángeles",country:"Estados Unidos",style:"Arquitectura del siglo XIX",relevance:3,icon:"geometrico",lat:34.0505,lon:-118.2482,desc:"Edificio de oficinas con un atrio interior de hierro forjado y luz cenital, célebre por sus apariciones en el cine de ciencia ficción."},
 {id:862,name:"Museum of Pop Culture",architect:"Frank Gehry",year:2000,city:"Seattle",country:"Estados Unidos",style:"Deconstructivismo",relevance:3,icon:"organico",lat:47.6215,lon:-122.3481,desc:"Museo de formas metálicas onduladas y colores vivos inspirado en las curvas de una guitarra eléctrica desmontada, dedicado a la música popular."},
@@ -3002,7 +3042,6 @@ const WORKS = [
 {id:1199,name:"V&A Dundee",architect:"Kengo Kuma",year:2018,city:"Dundee",country:"Reino Unido",style:"Arquitectura contemporánea",relevance:2,icon:"organico",lat:56.45747,lon:-2.96722,desc:"Museo de diseño con una fachada de paneles de hormigón prefabricado apilados que evocan los acantilados escoceses, primer museo de diseño de Escocia."},
 {id:1200,name:"China Academy of Art's Folk Art Museum",architect:"Kengo Kuma",year:2015,city:"Hangzhou",country:"China",style:"Arquitectura contemporánea",relevance:1,icon:"organico",lat:30.2617,lon:120.0956,desc:"Museo de artesanía popular con una cubierta fragmentada de tejas recicladas que sigue la topografía irregular del campus universitario."},
 {id:1201,name:"Nezu Museum",architect:"Kengo Kuma",year:2009,city:"Tokio",country:"Japón",style:"Arquitectura contemporánea japonesa",relevance:1,icon:"geometrico",lat:35.6654,lon:139.7169,desc:"Museo de arte asiático antiguo con un largo pasillo de bambú que conduce a una cubierta japonesa tradicional reinterpretada con materiales modernos."},
-{id:1202,name:"Musashino Art University Museum & Library",architect:"Sou Fujimoto",year:2010,city:"Tokio",country:"Japón",style:"Arquitectura contemporánea japonesa",relevance:1,icon:"geometrico",lat:35.7167,lon:139.5397,desc:"Biblioteca formada por estanterías de madera que actúan simultáneamente como estructura portante y como mobiliario, en un laberinto continuo de libros."},
 {id:1203,name:"House NA",architect:"Sou Fujimoto",year:2011,city:"Tokio",country:"Japón",style:"Arquitectura contemporánea japonesa",relevance:1,icon:"geometrico",lat:35.6762,lon:139.6503,desc:"Vivienda transparente formada por veintiuna plataformas de suelo a distintas alturas sin divisiones tradicionales entre habitaciones."},
 {id:1204,name:"L'Arbre Blanc",architect:"Sou Fujimoto / Nicolas Laisné",year:2019,city:"Montpellier",country:"Francia",style:"Arquitectura contemporánea",relevance:2,icon:"organico",lat:43.6031,lon:3.8794,desc:"Torre residencial con más de doscientos balcones en voladizo que se extienden como ramas de un árbol blanco, primera obra europea de Fujimoto."},
 {id:1205,name:"Templo de Preah Vihear",architect:"Anónimo (imperio jemer)",year:1150,city:"Preah Vihear",country:"Camboya",style:"Arquitectura jemer",relevance:2,icon:"monumental",lat:14.3911,lon:104.6811,desc:"Santuario hindú jemer construido a lo largo de una cresta montañosa en la frontera con Tailandia, célebre por su disputa territorial internacional."},
@@ -3369,6 +3408,46 @@ function toggleVisited(id){
   if(markers[id]) markers[id].setIcon(makeIcon(ALL_WORKS.find(x=>x.id===id), map.getZoom(), id===activeId));
   renderList();
 }
+
+/* ================= REPORTES DE ERROR =================
+   Prototipo sin servidor: los reportes se guardan en una lista local
+   (archmap_error_reports), con el nombre de la obra y, si hay sesión
+   iniciada, quién lo envió. No llegan a ningún sitio automáticamente;
+   es un registro local para no perder el aviso. */
+let reportingWork = null;
+function getErrorReports(){
+  try{ return JSON.parse(localStorage.getItem('archmap_error_reports') || '[]'); }catch(e){ return []; }
+}
+function saveErrorReports(list){
+  try{ localStorage.setItem('archmap_error_reports', JSON.stringify(list)); }catch(e){}
+}
+function openReportError(w){
+  reportingWork = w;
+  document.getElementById('reportWorkName').textContent = w.name;
+  document.getElementById('reportErrorText').value = '';
+  document.getElementById('reportErrorFormError').style.display = 'none';
+  openModal('reportErrorOverlay');
+}
+document.getElementById('reportErrorSubmit').addEventListener('click', ()=>{
+  const text = document.getElementById('reportErrorText').value.trim();
+  if(!text || !reportingWork){
+    document.getElementById('reportErrorFormError').style.display = 'block';
+    return;
+  }
+  const user = getUser();
+  const reports = getErrorReports();
+  reports.push({
+    id: 'r' + Date.now() + Math.random().toString(36).slice(2,7),
+    workId: reportingWork.id,
+    workName: reportingWork.name,
+    text,
+    reportedBy: user ? (user.name || user.email) : 'Anónimo',
+    reportedAt: Date.now()
+  });
+  saveErrorReports(reports);
+  closeModal('reportErrorOverlay');
+  toast('Gracias, hemos registrado tu reporte.');
+});
 
 /* ================= CUENTA LOCAL Y OBRAS DE USUARIO =================
    Prototipo sin servidor: la "sesión" y las obras añadidas se guardan
@@ -4410,6 +4489,8 @@ function selectWork(id){
   refreshAddRouteBtn();
   addRouteBtn.onclick = ()=>{ toggleRouteStop(w.id); refreshAddRouteBtn(); };
 
+  document.getElementById('reportErrorBtn').onclick = ()=> openReportError(w);
+
   const addedByTag = document.getElementById('dAddedBy');
   const existingDelete = document.getElementById('deleteWorkBtn');
   if(existingDelete) existingDelete.remove();
@@ -4740,11 +4821,13 @@ document.getElementById('loginSubmit').addEventListener('click', ()=>{
 
   refreshAccountUI();
   closeModal('loginOverlay');
+  if(currentGalleryWork) renderGallery(currentGalleryWork);
 });
 
 document.getElementById('logoutBtn').addEventListener('click', ()=>{
   clearUser();
   refreshAccountUI();
+  if(currentGalleryWork) renderGallery(currentGalleryWork);
 });
 
 /* ================= AÑADIR OBRA ================= */
@@ -4844,16 +4927,26 @@ function deleteUserWork(id){
   refreshMarkerVisibility();
 }
 
-/* ================= GALERÍA DE FOTOS DE USUARIOS =================
+/* ================= MIS FOTOS (galería privada por cuenta) =================
    Prototipo sin servidor: las fotos se guardan como imágenes redimensionadas
-   en localStorage, agrupadas por obra. Solo son visibles en este navegador,
-   igual que la cuenta local y las obras añadidas manualmente. */
+   en localStorage, agrupadas por obra, bajo una clave específica de cada
+   cuenta (misma mecánica que las rutas guardadas: archmap_gallery::correo).
+   Así, cada persona solo ve y gestiona sus propias fotos al iniciar sesión
+   en su cuenta — no son visibles para otras cuentas ni para quien no haya
+   iniciado sesión. */
+function galleryKey(user){
+  return 'archmap_gallery::' + (user.email || user.name).trim().toLowerCase();
+}
 function getGallery(){
-  try{ return JSON.parse(localStorage.getItem('archmap_gallery') || '{}'); }catch(e){ return {}; }
+  const user = getUser();
+  if(!user) return {};
+  try{ return JSON.parse(localStorage.getItem(galleryKey(user)) || '{}'); }catch(e){ return {}; }
 }
 function saveGallery(g){
+  const user = getUser();
+  if(!user) return false;
   try{
-    localStorage.setItem('archmap_gallery', JSON.stringify(g));
+    localStorage.setItem(galleryKey(user), JSON.stringify(g));
     return true;
   }catch(e){
     alert('No se ha podido guardar la foto: el almacenamiento local del navegador está lleno. Prueba a eliminar alguna foto antigua o a usar imágenes más ligeras.');
@@ -4902,15 +4995,20 @@ function renderGallery(w){
   addBtn.disabled = !user;
   hint.style.display = user ? 'none' : 'block';
 
+  if(!user){
+    grid.innerHTML = '';
+    return;
+  }
+
   const photos = getPhotosFor(w.id);
   if(photos.length === 0){
-    grid.innerHTML = `<div class="gallery-empty">Todavía no hay fotos de esta obra. ¡Sé el primero en añadir una!</div>`;
+    grid.innerHTML = `<div class="gallery-empty">Todavía no has guardado ninguna foto de esta obra. Solo tú podrás verlas.</div>`;
     return;
   }
   grid.innerHTML = photos.map(p => `
     <div class="gallery-thumb" data-photo-id="${p.id}">
       <img src="${p.dataUrl}" alt="Foto de ${w.name}">
-      ${(user && user.name === p.addedBy) ? `<button class="del-btn" data-del-id="${p.id}" title="Eliminar foto">✕</button>` : ''}
+      <button class="del-btn" data-del-id="${p.id}" title="Eliminar foto">✕</button>
     </div>
   `).join('');
 
@@ -4977,7 +5075,7 @@ function openLightbox(photo, w){
   document.getElementById('lightboxImg').src = photo.dataUrl;
   const date = new Date(photo.addedAt);
   document.getElementById('lightboxCaption').textContent =
-    `${w.name} · añadida por ${photo.addedBy} · ${date.toLocaleDateString('es-ES')}`;
+    `${w.name} · guardada el ${date.toLocaleDateString('es-ES')} (solo visible para ti)`;
   lightboxOverlay.classList.add('show');
 }
 function closeLightbox(){
